@@ -1,0 +1,19 @@
+project_id = "oqbjhvwbqzmqgvcjrlfn"
+
+[functions.zapi-groups]
+verify_jwt = false
+
+[functions.zapi-messages]
+verify_jwt = false
+
+[functions.zapi-instance]
+verify_jwt = false
+
+[functions.zapi-broadcast]
+verify_jwt = false
+
+[functions.smart-link-redirect]
+verify_jwt = false
+
+[functions.process-scheduled-messages]
+verify_jwt = false
