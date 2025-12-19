@@ -12,7 +12,10 @@ import {
   CalendarClock,
   Megaphone,
   HelpCircle,
+  UsersRound,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -27,8 +30,13 @@ const navigation = [
   { name: "Ajuda", href: "/help", icon: HelpCircle },
 ];
 
+const adminNavigation = [
+  { name: "Gerenciar Usuarios", href: "/users", icon: UsersRound },
+];
+
 export function Sidebar() {
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border">
@@ -42,7 +50,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             return (
@@ -61,6 +69,35 @@ export function Sidebar() {
               </Link>
             );
           })}
+
+          {isAdmin && (
+            <>
+              <div className="my-3 border-t border-sidebar-border" />
+              <div className="px-3 py-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Administracao
+                </p>
+              </div>
+              {adminNavigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <item.icon className={cn("h-5 w-5", isActive && "text-primary")} />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* Footer */}
