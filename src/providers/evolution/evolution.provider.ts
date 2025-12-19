@@ -29,7 +29,7 @@ class EvolutionAPIClient {
   constructor() {
     const config = getEvolutionConfig();
     if (!config) {
-      throw new Error('Evolution API not configured. Please set VITE_EVOLUTION_API_URL, VITE_EVOLUTION_API_KEY, and VITE_EVOLUTION_INSTANCE_NAME');
+      throw new Error('Evolution API not configured');
     }
     this.baseUrl = config.apiUrl;
     this.apiKey = config.apiKey;
@@ -643,25 +643,30 @@ export class EvolutionProvider implements IWhatsAppProvider {
   private client: EvolutionAPIClient;
 
   constructor() {
-    try {
-      this.client = new EvolutionAPIClient();
-      this.groups = new EvolutionGroupsProvider(this.client);
-      this.messages = new EvolutionMessagesProvider(this.client);
-      this.instance = new EvolutionInstanceProvider(this.client);
-      this.contacts = new EvolutionContactsProvider(this.client);
-    } catch (error) {
-      console.warn('Evolution API not configured:', error);
-      throw error;
-    }
+    this.client = new EvolutionAPIClient();
+    this.groups = new EvolutionGroupsProvider(this.client);
+    this.messages = new EvolutionMessagesProvider(this.client);
+    this.instance = new EvolutionInstanceProvider(this.client);
+    this.contacts = new EvolutionContactsProvider(this.client);
   }
 }
 
 export const createEvolutionProvider = (): EvolutionProvider | null => {
   try {
     return new EvolutionProvider();
-  } catch {
+  } catch (error) {
+    // Silently return null if Evolution API is not configured
+    // This allows the app to work with Z-API when Evolution is not set up
     return null;
   }
 };
 
-export const evolutionProvider = createEvolutionProvider();
+// Lazy initialization - only create if it doesn't exist yet
+let _evolutionProvider: EvolutionProvider | null | undefined = undefined;
+
+export const evolutionProvider = (() => {
+  if (_evolutionProvider === undefined) {
+    _evolutionProvider = createEvolutionProvider();
+  }
+  return _evolutionProvider;
+})();
