@@ -49,7 +49,7 @@ async function getZAPICredentials(): Promise<ZAPICredentials> {
 }
 
 function maskUrl(url: string): string {
-  return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***");
+  return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***/");
 }
 
 Deno.serve(async (req: Request) => {
@@ -192,9 +192,16 @@ Deno.serve(async (req: Request) => {
         if (!params.groupId) {
           throw new Error("groupId is required for getInviteLink action");
         }
-        const formattedGroupId = params.groupId.replace("-group", "@g.us");
+        // Z-API aceita o groupId no formato original ou com @g.us
+        // Se já termina com @g.us, usa direto; senão, converte
+        let formattedGroupId = params.groupId;
+        if (!formattedGroupId.endsWith("@g.us")) {
+          // Remove -group se existir e adiciona @g.us
+          formattedGroupId = formattedGroupId.replace(/-group$/, "") + "@g.us";
+        }
         endpoint = `/group-invitation-link/${formattedGroupId}`;
-        method = "GET";
+        method = "POST";
+        console.log(`Getting invite link for group: ${params.groupId} -> formatted: ${formattedGroupId}`);
         break;
 
       case "pinMessage":

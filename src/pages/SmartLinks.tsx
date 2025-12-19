@@ -90,32 +90,43 @@ export default function SmartLinks() {
 
   const fetchInviteLink = async (groupPhone: string): Promise<{ link: string | null; error?: string }> => {
     try {
-      console.log(`Fetching invite link for: ${groupPhone}`);
+      console.log(`[fetchInviteLink] Starting for group: ${groupPhone}`);
 
       const { data, error } = await supabase.functions.invoke('zapi-groups', {
         body: { action: 'getInviteLink', groupId: groupPhone }
       });
 
       if (error) {
-        console.error('Error from zapi-groups:', error);
+        console.error('[fetchInviteLink] Error from edge function:', error);
         return { link: null, error: error.message || 'Erro ao buscar link' };
       }
 
+      console.log('[fetchInviteLink] Response data:', data);
+
+      // Verifica se houve erro na resposta da Z-API
+      if (data?.error) {
+        console.error('[fetchInviteLink] Z-API returned error:', data.error);
+        return { link: null, error: `Z-API: ${data.error}` };
+      }
+
+      // Valida se o invitationLink existe na resposta
       if (!data?.invitationLink) {
-        console.warn(`No invitation link returned for ${groupPhone}`);
-        return { link: null, error: 'Link de convite não disponível' };
+        console.warn(`[fetchInviteLink] No invitationLink in response for ${groupPhone}`, data);
+        return { link: null, error: 'Link de convite não retornado pela API' };
       }
 
       const inviteLink = data.invitationLink;
+
+      // Valida o formato do link
       if (!inviteLink.includes('chat.whatsapp.com/')) {
-        console.warn(`Invalid invite link format for ${groupPhone}: ${inviteLink}`);
+        console.warn(`[fetchInviteLink] Invalid link format: ${inviteLink}`);
         return { link: null, error: 'Formato de link inválido' };
       }
 
-      console.log(`Successfully fetched invite link for ${groupPhone}`);
+      console.log(`[fetchInviteLink] ✓ Success for ${groupPhone}: ${inviteLink}`);
       return { link: inviteLink };
     } catch (err) {
-      console.error('Exception fetching invite link:', err);
+      console.error('[fetchInviteLink] Exception:', err);
       return { link: null, error: err instanceof Error ? err.message : 'Erro desconhecido' };
     }
   };
@@ -140,6 +151,8 @@ export default function SmartLinks() {
     }
 
     setIsCreatingLink(true);
+    console.log('[handleCreateLink] Starting smart link creation process');
+    console.log('[handleCreateLink] Selected groups:', newLink.selectedGroups);
 
     try {
       const failedGroups: Array<{ name: string; error: string }> = [];
@@ -150,44 +163,57 @@ export default function SmartLinks() {
         const group = whatsappGroups.find((g) => g.phone === groupPhone);
 
         if (!group) {
-          console.warn(`Group ${groupPhone} not found in whatsappGroups`);
+          console.warn(`[handleCreateLink] Group ${groupPhone} not found in whatsappGroups`);
+          failedGroups.push({
+            name: groupPhone,
+            error: 'Grupo não encontrado na lista'
+          });
           continue;
         }
+
+        console.log(`[handleCreateLink] Processing group ${i + 1}/${newLink.selectedGroups.length}: ${group.name}`);
 
         const { link: inviteLink, error: fetchError } = await fetchInviteLink(groupPhone);
 
         if (!inviteLink || fetchError) {
+          console.error(`[handleCreateLink] Failed to get invite link for ${group.name}:`, fetchError);
           failedGroups.push({
             name: group.name || groupPhone,
             error: fetchError || 'Link não disponível'
           });
         } else {
+          console.log(`[handleCreateLink] ✓ Got invite link for ${group.name}`);
           successGroups.push(group.name || groupPhone);
         }
 
+        // Adiciona o grupo à campanha (mesmo se o link falhou, para permitir configuração manual depois)
+        console.log(`[handleCreateLink] Adding group to campaign...`);
         await addCampaignGroup.mutateAsync({
           campaign_id: newLink.campaign_id,
           group_phone: groupPhone,
           group_name: group.name || "Grupo sem nome",
           member_limit: 256,
           current_members: 0,
-          invite_link: inviteLink,
+          invite_link: inviteLink || null,
           priority: i,
           is_active: true,
         });
+        console.log(`[handleCreateLink] ✓ Group added to campaign`);
       }
 
       if (failedGroups.length > 0) {
-        const failedList = failedGroups.map(g => `${g.name}: ${g.error}`).join(', ');
+        const failedList = failedGroups.map(g => `${g.name}: ${g.error}`).join('; ');
+        console.warn('[handleCreateLink] Some groups failed:', failedGroups);
         toast({
           title: "Atenção - Links Incompletos",
-          description: `${successGroups.length} grupo(s) configurado(s) com sucesso. ${failedGroups.length} grupo(s) precisam de configuração manual: ${failedList}`,
+          description: `${successGroups.length} grupo(s) configurado(s). ${failedGroups.length} falharam: ${failedList}`,
           variant: "destructive",
           duration: 10000,
         });
       }
 
       // Cria o smart link
+      console.log('[handleCreateLink] Creating smart link in database...');
       await createSmartLink.mutateAsync({
         campaign_id: newLink.campaign_id,
         slug: newLink.slug,
@@ -196,10 +222,14 @@ export default function SmartLinks() {
         track_clicks: newLink.track_clicks,
       });
 
-      toast({
-        title: "Sucesso!",
-        description: "Smart Link criado com sucesso.",
-      });
+      console.log('[handleCreateLink] ✓ Smart link created successfully');
+
+      if (successGroups.length > 0) {
+        toast({
+          title: "Sucesso!",
+          description: `Smart Link criado com ${successGroups.length} grupo(s) configurado(s).`,
+        });
+      }
 
       setNewLink({
         name: "",
@@ -211,14 +241,15 @@ export default function SmartLinks() {
       });
       setIsDialogOpen(false);
     } catch (error) {
-      console.error('Erro ao criar smart link:', error);
+      console.error('[handleCreateLink] Error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao criar o smart link. Tente novamente.",
+        description: error instanceof Error ? error.message : "Erro ao criar o smart link. Tente novamente.",
         variant: "destructive",
       });
     } finally {
       setIsCreatingLink(false);
+      console.log('[handleCreateLink] Process finished');
     }
   };
 
