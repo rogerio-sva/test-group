@@ -26,16 +26,16 @@ import {
 import { Plus, Search, Link2, Smartphone, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InfoTooltip, LabelWithTooltip } from "@/components/ui/info-tooltip";
-import { 
-  useSmartLinks, 
-  useCreateSmartLink, 
-  useCampaigns, 
+import {
+  useSmartLinks,
+  useCreateSmartLink,
+  useCampaigns,
   useCreateCampaign,
   useAllCampaignGroups,
   useAddCampaignGroup
 } from "@/hooks/use-campaigns";
 import { useZAPIGroups } from "@/hooks/use-zapi";
-import { supabase } from "@/integrations/supabase/client";
+import { groups } from "@/providers";
 
 export default function SmartLinks() {
   const { toast } = useToast();
@@ -92,30 +92,15 @@ export default function SmartLinks() {
     try {
       console.log(`[fetchInviteLink] Starting for group: ${groupPhone}`);
 
-      const { data, error } = await supabase.functions.invoke('zapi-groups', {
-        body: { action: 'getInviteLink', groupId: groupPhone }
-      });
+      const inviteLink = await groups.getInviteLink(groupPhone);
 
-      if (error) {
-        console.error('[fetchInviteLink] Error from edge function:', error);
-        return { link: null, error: error.message || 'Erro ao buscar link' };
-      }
+      console.log('[fetchInviteLink] Response:', inviteLink);
 
-      console.log('[fetchInviteLink] Response data:', data);
-
-      // Verifica se houve erro na resposta da Z-API
-      if (data?.error) {
-        console.error('[fetchInviteLink] Z-API returned error:', data.error);
-        return { link: null, error: `Z-API: ${data.error}` };
-      }
-
-      // Valida se o invitationLink existe na resposta
-      if (!data?.invitationLink) {
-        console.warn(`[fetchInviteLink] No invitationLink in response for ${groupPhone}`, data);
+      // Valida se o link foi retornado
+      if (!inviteLink) {
+        console.warn(`[fetchInviteLink] No invite link returned for ${groupPhone}`);
         return { link: null, error: 'Link de convite não retornado pela API' };
       }
-
-      const inviteLink = data.invitationLink;
 
       // Valida o formato do link
       if (!inviteLink.includes('chat.whatsapp.com/')) {
@@ -127,7 +112,8 @@ export default function SmartLinks() {
       return { link: inviteLink };
     } catch (err) {
       console.error('[fetchInviteLink] Exception:', err);
-      return { link: null, error: err instanceof Error ? err.message : 'Erro desconhecido' };
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      return { link: null, error: errorMessage };
     }
   };
 

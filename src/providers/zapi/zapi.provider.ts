@@ -90,11 +90,33 @@ class ZAPIGroupsProvider implements IGroupsProvider {
   }
 
   async getInviteLink(groupId: string): Promise<string> {
+    console.log(`[ZAPIGroupsProvider.getInviteLink] Requesting invite link for group: ${groupId}`);
+
     const { data, error } = await supabase.functions.invoke('zapi-groups', {
       body: { action: 'getInviteLink', groupId },
     });
-    if (error) throw error;
-    return data.invitationLink || data.link || '';
+
+    if (error) {
+      console.error(`[ZAPIGroupsProvider.getInviteLink] Supabase function error:`, error);
+      throw new Error(`Failed to get invite link: ${error.message || 'Unknown error'}`);
+    }
+
+    console.log(`[ZAPIGroupsProvider.getInviteLink] Response data:`, data);
+
+    if (data?.error) {
+      console.error(`[ZAPIGroupsProvider.getInviteLink] Z-API error in response:`, data.error);
+      throw new Error(`Z-API error: ${data.error}`);
+    }
+
+    const inviteLink = data?.invitationLink || data?.link;
+
+    if (!inviteLink) {
+      console.error(`[ZAPIGroupsProvider.getInviteLink] No invitation link in response:`, data);
+      throw new Error('No invitation link returned by Z-API');
+    }
+
+    console.log(`[ZAPIGroupsProvider.getInviteLink] Successfully retrieved: ${inviteLink}`);
+    return inviteLink;
   }
 
   async pinMessage(groupId: string, messageId: string): Promise<void> {

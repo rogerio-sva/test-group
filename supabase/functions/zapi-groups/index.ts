@@ -190,18 +190,21 @@ Deno.serve(async (req: Request) => {
 
       case "getInviteLink":
         if (!params.groupId) {
+          console.error("[getInviteLink] groupId is required but not provided");
           throw new Error("groupId is required for getInviteLink action");
         }
-        // Z-API aceita o groupId no formato original ou com @g.us
-        // Se já termina com @g.us, usa direto; senão, converte
+
         let formattedGroupId = params.groupId;
+        console.log(`[getInviteLink] Original groupId: ${params.groupId}`);
+
         if (!formattedGroupId.endsWith("@g.us")) {
-          // Remove -group se existir e adiciona @g.us
           formattedGroupId = formattedGroupId.replace(/-group$/, "") + "@g.us";
+          console.log(`[getInviteLink] Formatted groupId: ${formattedGroupId}`);
         }
+
         endpoint = `/group-invitation-link/${formattedGroupId}`;
         method = "POST";
-        console.log(`Getting invite link for group: ${params.groupId} -> formatted: ${formattedGroupId}`);
+        console.log(`[getInviteLink] Calling Z-API endpoint: ${endpoint}`);
         break;
 
       case "pinMessage":
@@ -246,9 +249,48 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Calling Z-API: ${maskUrl(ZAPI_BASE_URL + endpoint)}`);
     const response = await fetch(`${ZAPI_BASE_URL}${endpoint}`, fetchOptions);
-    const data = await response.json();
 
-    console.log("Z-API Response:", data);
+    if (!response.ok) {
+      console.error(`Z-API returned status ${response.status}: ${response.statusText}`);
+      const errorData = await response.text();
+      console.error(`Z-API error response: ${errorData}`);
+      return new Response(
+        JSON.stringify({ error: `Z-API error: ${response.status} ${response.statusText}` }),
+        {
+          status: response.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const data = await response.json();
+    console.log("Z-API Response:", JSON.stringify(data, null, 2));
+
+    if (action === "getInviteLink") {
+      if (!data || typeof data !== "object") {
+        console.error("[getInviteLink] Invalid response format:", data);
+        return new Response(
+          JSON.stringify({ error: "Invalid response format from Z-API" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (!data.invitationLink && !data.link) {
+        console.error("[getInviteLink] No invitation link in response:", data);
+        return new Response(
+          JSON.stringify({ error: "No invitation link returned by Z-API", details: data }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      console.log(`[getInviteLink] Successfully retrieved invite link: ${data.invitationLink || data.link}`);
+    }
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
