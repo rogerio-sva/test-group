@@ -33,11 +33,20 @@ Sistema completo para gerenciamento de grupos WhatsApp em larga escala.
 | `VITE_SUPABASE_URL` | URL do seu projeto Supabase (ex: https://xxx.supabase.co) |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave "anon/public" do Supabase |
 
-**Onde encontrar essas informacoes:**
-- No Supabase, va em **Settings > API**
-- Copie a **Project URL** e a **anon public key**
+**Onde encontrar essas informacoes no Supabase:**
+- Clique no seu projeto
+- Va em **Settings** (engrenagem na barra lateral)
+- Clique em **API**
+- Copie:
+  - **Project URL** → use em `VITE_SUPABASE_URL`
+  - **anon public key** → use em `VITE_SUPABASE_PUBLISHABLE_KEY`
+  - ⚠️ **NAO use a service_role key** (essa e secreta e nao deve ser exposta)
 
-4. Faca o deploy (Netlify detecta automaticamente como projeto Vite)
+4. Faca o deploy:
+   - Se conectou via Git: Netlify faz deploy automaticamente
+   - Se fez upload: Clique em **Deploys > Trigger deploy > Deploy site**
+5. Aguarde o build completar (leva 2-3 minutos)
+6. Acesse o site pelo link fornecido pelo Netlify
 
 ### Passo 3: Configurar Z-API
 
@@ -50,6 +59,16 @@ Sistema completo para gerenciamento de grupos WhatsApp em larga escala.
    - Client Token
 
 Pronto! Seu sistema esta configurado e funcionando.
+
+---
+
+## ⚠️ Problemas na Instalacao?
+
+**Se voce estiver tendo erro ao salvar as credenciais Z-API**, veja o guia completo de solucao de problemas:
+
+👉 **[SOLUCAO_DE_PROBLEMAS.md](./SOLUCAO_DE_PROBLEMAS.md)**
+
+Tambem existe um script de diagnostico automatico em `supabase/troubleshooting.sql` que identifica e corrige problemas comuns.
 
 ---
 
