@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { SmartLinkCard } from "@/components/smart-links/SmartLinkCard";
 import { GroupSelector } from "@/components/groups/GroupSelector";
@@ -36,9 +37,11 @@ import {
 } from "@/hooks/use-campaigns";
 import { useZAPIGroups } from "@/hooks/use-zapi";
 import { groups } from "@/providers";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SmartLinks() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCampaignDialogOpen, setIsCampaignDialogOpen] = useState(false);
@@ -172,19 +175,41 @@ export default function SmartLinks() {
           successGroups.push(group.name || groupPhone);
         }
 
-        // Adiciona o grupo à campanha (mesmo se o link falhou, para permitir configuração manual depois)
-        console.log(`[handleCreateLink] Adding group to campaign...`);
-        await addCampaignGroup.mutateAsync({
-          campaign_id: newLink.campaign_id,
-          group_phone: groupPhone,
-          group_name: group.name || "Grupo sem nome",
-          member_limit: 256,
-          current_members: 0,
-          invite_link: inviteLink || null,
-          priority: i,
-          is_active: true,
-        });
-        console.log(`[handleCreateLink] ✓ Group added to campaign`);
+        console.log(`[handleCreateLink] Checking if group already exists in campaign...`);
+        const existingGroup = allCampaignGroups.find(
+          g => g.campaign_id === newLink.campaign_id && g.group_phone === groupPhone
+        );
+
+        if (existingGroup) {
+          console.log(`[handleCreateLink] Group already exists, updating invite link...`);
+          if (inviteLink) {
+            const { error: updateError } = await supabase
+              .from('campaign_groups')
+              .update({ invite_link: inviteLink })
+              .eq('id', existingGroup.id);
+
+            if (updateError) {
+              console.error(`[handleCreateLink] Failed to update invite link:`, updateError);
+            } else {
+              console.log(`[handleCreateLink] ✓ Invite link updated`);
+              queryClient.invalidateQueries({ queryKey: ['campaign-groups', newLink.campaign_id] });
+              queryClient.invalidateQueries({ queryKey: ['all-campaign-groups'] });
+            }
+          }
+        } else {
+          console.log(`[handleCreateLink] Adding new group to campaign...`);
+          await addCampaignGroup.mutateAsync({
+            campaign_id: newLink.campaign_id,
+            group_phone: groupPhone,
+            group_name: group.name || "Grupo sem nome",
+            member_limit: 256,
+            current_members: 0,
+            invite_link: inviteLink || null,
+            priority: i,
+            is_active: true,
+          });
+          console.log(`[handleCreateLink] ✓ Group added to campaign`);
+        }
       }
 
       if (failedGroups.length > 0) {
