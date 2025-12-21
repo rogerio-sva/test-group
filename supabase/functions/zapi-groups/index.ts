@@ -203,7 +203,7 @@ Deno.serve(async (req: Request) => {
         }
 
         endpoint = `/group-invitation-link/${formattedGroupId}`;
-        method = "POST";
+        method = "GET";
         console.log(`[getInviteLink] Calling Z-API endpoint: ${endpoint}`);
         break;
 
