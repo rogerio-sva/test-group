@@ -194,16 +194,9 @@ Deno.serve(async (req: Request) => {
           throw new Error("groupId is required for getInviteLink action");
         }
 
-        let formattedGroupId = params.groupId;
-        console.log(`[getInviteLink] Original groupId: ${params.groupId}`);
-
-        if (!formattedGroupId.endsWith("@g.us")) {
-          formattedGroupId = formattedGroupId.replace(/-group$/, "") + "@g.us";
-          console.log(`[getInviteLink] Formatted groupId: ${formattedGroupId}`);
-        }
-
-        endpoint = `/group-invitation-link/${formattedGroupId}`;
-        method = "GET";
+        console.log(`[getInviteLink] Using groupId as-is: ${params.groupId}`);
+        endpoint = `/group-invitation-link/${params.groupId}`;
+        method = "POST";
         console.log(`[getInviteLink] Calling Z-API endpoint: ${endpoint}`);
         break;
 
