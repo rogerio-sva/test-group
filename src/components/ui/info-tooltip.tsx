@@ -30,7 +30,7 @@ export function InfoTooltip({
           type="button"
           className={cn(
             "inline-flex items-center justify-center rounded-full p-0.5 transition-colors",
-            "text-muted-foreground/70 hover:text-muted-foreground",
+            "text-muted-foreground hover:text-foreground",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             className
           )}
@@ -41,7 +41,7 @@ export function InfoTooltip({
       </TooltipTrigger>
       <TooltipContent
         side={side}
-        className="max-w-[280px] text-sm leading-relaxed"
+        className="max-w-[340px] text-sm leading-relaxed font-normal"
       >
         {content}
       </TooltipContent>
