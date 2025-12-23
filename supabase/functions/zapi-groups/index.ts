@@ -195,8 +195,8 @@ Deno.serve(async (req: Request) => {
         }
 
         console.log(`[getInviteLink] Using groupId as-is: ${params.groupId}`);
-        endpoint = `/group-invitation-link/${params.groupId}`;
-        method = "POST";
+        endpoint = `/invite-link/${params.groupId}`;
+        method = "GET";
         console.log(`[getInviteLink] Calling Z-API endpoint: ${endpoint}`);
         break;
 
