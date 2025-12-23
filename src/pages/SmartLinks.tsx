@@ -198,6 +198,11 @@ export default function SmartLinks() {
           }
         } else {
           console.log(`[handleCreateLink] Adding new group to campaign...`);
+          const campaignGroups = allCampaignGroups.filter(g => g.campaign_id === newLink.campaign_id);
+          const maxPriority = campaignGroups.length > 0
+            ? Math.max(...campaignGroups.map(g => g.priority))
+            : 0;
+
           await addCampaignGroup.mutateAsync({
             campaign_id: newLink.campaign_id,
             group_phone: groupPhone,
@@ -205,7 +210,7 @@ export default function SmartLinks() {
             member_limit: 256,
             current_members: 0,
             invite_link: inviteLink || null,
-            priority: i,
+            priority: maxPriority + 1,
             is_active: true,
           });
           console.log(`[handleCreateLink] ✓ Group added to campaign`);

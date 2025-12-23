@@ -56,10 +56,6 @@ export default function CampaignDetails() {
     navigate('/smart-links', { state: { campaignId: id } });
   };
 
-  const handleAddGroup = () => {
-    navigate('/groups', { state: { campaignId: id } });
-  };
-
   const handleSendToGroup = (groupPhone: string) => {
     navigate('/messages', { state: { campaignId: id, selectedGroup: groupPhone } });
   };
@@ -158,7 +154,6 @@ export default function CampaignDetails() {
           <TabsContent value="groups" className="space-y-4">
             <CampaignGroupsTab
               campaignId={id!}
-              onAddGroup={handleAddGroup}
               onSendToGroup={handleSendToGroup}
             />
           </TabsContent>

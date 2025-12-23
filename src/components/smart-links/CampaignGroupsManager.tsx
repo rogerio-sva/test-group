@@ -234,7 +234,7 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
                   <div>
                     <p className="font-medium text-card-foreground">{group.group_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Prioridade: {group.priority + 1} • Limite: {group.member_limit} membros
+                      Prioridade: #{group.priority} • Limite: {group.member_limit} membros
                     </p>
                   </div>
                 </div>

@@ -111,6 +111,54 @@ export function useUpdateCampaignGroup() {
   });
 }
 
+export function useAddMultipleGroupsToCampaign() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      campaignId,
+      groups,
+    }: {
+      campaignId: string;
+      groups: Array<Omit<CampaignGroup, 'id' | 'campaign_id' | 'created_at' | 'updated_at'>>;
+    }) => {
+      const groupsToInsert = groups.map(group => ({
+        campaign_id: campaignId,
+        ...group,
+      }));
+
+      const { data, error } = await supabase
+        .from('campaign_groups')
+        .insert(groupsToInsert)
+        .select();
+
+      if (error) throw error;
+
+      for (const group of data) {
+        await supabase.from('campaign_activity_log').insert({
+          campaign_id: campaignId,
+          action_type: 'group_added',
+          action_data: {
+            group_phone: group.group_phone,
+            group_name: group.group_name,
+          },
+        });
+      }
+
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['campaign-groups', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-with-stats', variables.campaignId] });
+      queryClient.invalidateQueries({ queryKey: ['campaign-activity', variables.campaignId] });
+      toast.success(`${data.length} group(s) added to campaign`);
+    },
+    onError: (error) => {
+      toast.error('Failed to add groups: ' + error.message);
+    },
+  });
+}
+
 export function useRemoveGroupFromCampaign() {
   const queryClient = useQueryClient();
 

@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GroupCard } from '@/components/groups/GroupCard';
 import { useCampaignGroups, useRemoveGroupFromCampaign, useUpdateCampaignGroup } from '@/hooks/use-campaign-groups';
 import { useSyncGroupMembers } from '@/hooks/use-sync-group-members';
+import { AddGroupsToCampaignDialog } from './AddGroupsToCampaignDialog';
 import { Users, Plus, Copy, Send, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -18,14 +19,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CampaignGroupsTabProps {
   campaignId: string;
-  onAddGroup: () => void;
   onSendToGroup: (groupPhone: string) => void;
 }
 
-export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: CampaignGroupsTabProps) {
+export function CampaignGroupsTab({ campaignId, onSendToGroup }: CampaignGroupsTabProps) {
+  const queryClient = useQueryClient();
   const { data: groups, isLoading } = useCampaignGroups(campaignId);
   const removeGroupMutation = useRemoveGroupFromCampaign();
   const updateGroupMutation = useUpdateCampaignGroup();
@@ -33,6 +35,12 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
 
   const [groupToRemove, setGroupToRemove] = useState<string | null>(null);
   const [syncingGroupId, setSyncingGroupId] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  const handleGroupsAdded = () => {
+    queryClient.invalidateQueries({ queryKey: ['campaign-groups', campaignId] });
+    queryClient.invalidateQueries({ queryKey: ['campaign-with-stats', campaignId] });
+  };
 
   const handleCopyLink = (link: string) => {
     navigator.clipboard.writeText(link);
@@ -92,9 +100,9 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
               Gerencie os grupos do WhatsApp vinculados a esta campanha
             </p>
           </div>
-          <Button onClick={onAddGroup}>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Adicionar Grupo
+            Adicionar Grupos
           </Button>
         </div>
 
@@ -111,7 +119,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                       <div className="space-y-1">
                         <CardTitle className="text-base text-foreground">{group.group_name}</CardTitle>
                         <CardDescription className="text-xs text-muted-foreground">
-                          Prioridade: {group.priority}
+                          Prioridade: #{group.priority}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">
@@ -205,14 +213,21 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
               <p className="text-sm text-muted-foreground text-center mb-4">
                 Adicione grupos do WhatsApp a esta campanha para começar a enviar mensagens e rastrear o engajamento.
               </p>
-              <Button onClick={onAddGroup}>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Adicionar Seu Primeiro Grupo
+                Adicionar Grupos
               </Button>
             </CardContent>
           </Card>
         )}
       </div>
+
+      <AddGroupsToCampaignDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        campaignId={campaignId}
+        onSuccess={handleGroupsAdded}
+      />
 
       <AlertDialog open={!!groupToRemove} onOpenChange={() => setGroupToRemove(null)}>
         <AlertDialogContent>
