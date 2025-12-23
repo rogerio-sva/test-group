@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { InfoTooltip, LabelWithTooltip } from "@/components/ui/info-tooltip";
 import { useNavigate } from "react-router-dom";
 import { useZAPIInstanceStatus } from "@/hooks/use-zapi";
+import { useSmartLinkDomain, useUpdateDomain, useVerifyDomain } from "@/hooks/use-smart-link-domain";
 import { instance } from "@/providers";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,11 +47,15 @@ export default function Settings() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { data: instanceStatus, isLoading, refetch } = useZAPIInstanceStatus();
+  const { data: domainSettings, isLoading: isDomainLoading } = useSmartLinkDomain();
+  const updateDomainMutation = useUpdateDomain();
+  const verifyDomainMutation = useVerifyDomain();
   const [isRestarting, setIsRestarting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [showToken, setShowToken] = useState(false);
   const [showClientToken, setShowClientToken] = useState(false);
+  const [customDomain, setCustomDomain] = useState<string>("");
 
   const [zapiCredentials, setZapiCredentials] = useState<ApiSettings>({
     instance_id: "",
@@ -63,6 +68,12 @@ export default function Settings() {
   useEffect(() => {
     loadCredentials();
   }, []);
+
+  useEffect(() => {
+    if (domainSettings?.custom_domain) {
+      setCustomDomain(domainSettings.custom_domain);
+    }
+  }, [domainSettings]);
 
   const loadCredentials = async () => {
     try {
@@ -150,6 +161,32 @@ export default function Settings() {
     } finally {
       setIsRestarting(false);
     }
+  };
+
+  const handleSaveDomain = async () => {
+    if (!customDomain) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Digite um domínio válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await updateDomainMutation.mutateAsync(customDomain);
+  };
+
+  const handleVerifyDomain = async () => {
+    if (!customDomain) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Digite um domínio antes de verificar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await verifyDomainMutation.mutateAsync(customDomain);
   };
 
   const isConnected = instanceStatus?.connected || false;
@@ -498,6 +535,102 @@ export default function Settings() {
                 <InfoTooltip content="Registra cada acesso ao link incluindo data, hora, dispositivo e localizacao aproximada para analises." />
               </div>
               <Switch defaultChecked />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Domain */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Globe className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <CardTitle>Domínio Customizado</CardTitle>
+                  {isDomainLoading ? (
+                    <Badge variant="secondary">Carregando...</Badge>
+                  ) : domainSettings?.domain_verified ? (
+                    <Badge className="bg-green-500 gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Verificado
+                    </Badge>
+                  ) : domainSettings?.custom_domain ? (
+                    <Badge variant="secondary" className="gap-1 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400">
+                      <AlertCircle className="h-3 w-3" />
+                      Não Verificado
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">Não Configurado</Badge>
+                  )}
+                </div>
+                <CardDescription>
+                  Configure um domínio personalizado para seus links inteligentes
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                <strong>Como configurar:</strong>
+              </p>
+              <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                <li>Digite seu domínio ou subdomínio (ex: links.suaempresa.com)</li>
+                <li>No seu provedor DNS, crie um registro CNAME apontando para: <code className="bg-blue-500/20 px-1 rounded">{window.location.hostname}</code></li>
+                <li>Aguarde a propagação do DNS (pode levar até 48 horas)</li>
+                <li>Clique em "Verificar Domínio" para confirmar a configuração</li>
+              </ol>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="custom_domain">Domínio Customizado</Label>
+              <Input
+                id="custom_domain"
+                placeholder="Ex: links.suaempresa.com"
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Use um subdomínio para melhor organização (links.dominio.com)
+              </p>
+            </div>
+
+            {domainSettings?.domain_verified && domainSettings?.domain_verified_at && (
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  <CheckCircle2 className="inline h-4 w-4 mr-1" />
+                  Domínio verificado em {new Date(domainSettings.domain_verified_at).toLocaleString('pt-BR')}
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                onClick={handleSaveDomain}
+                disabled={updateDomainMutation.isPending || !customDomain}
+              >
+                {updateDomainMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Salvar Domínio
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleVerifyDomain}
+                disabled={verifyDomainMutation.isPending || !customDomain}
+              >
+                {verifyDomainMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
+                Verificar Domínio
+              </Button>
             </div>
           </CardContent>
         </Card>

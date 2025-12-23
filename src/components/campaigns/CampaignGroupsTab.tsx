@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GroupCard } from '@/components/groups/GroupCard';
 import { useCampaignGroups, useRemoveGroupFromCampaign, useUpdateCampaignGroup } from '@/hooks/use-campaign-groups';
-import { Users, Plus, Copy, Send, AlertCircle } from 'lucide-react';
+import { useSyncGroupMembers } from '@/hooks/use-sync-group-members';
+import { Users, Plus, Copy, Send, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -28,8 +29,10 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
   const { data: groups, isLoading } = useCampaignGroups(campaignId);
   const removeGroupMutation = useRemoveGroupFromCampaign();
   const updateGroupMutation = useUpdateCampaignGroup();
+  const syncMembersMutation = useSyncGroupMembers();
 
   const [groupToRemove, setGroupToRemove] = useState<string | null>(null);
+  const [syncingGroupId, setSyncingGroupId] = useState<string | null>(null);
 
   const handleCopyLink = (link: string) => {
     navigator.clipboard.writeText(link);
@@ -54,6 +57,18 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
         groupId: groupToRemove,
       });
       setGroupToRemove(null);
+    }
+  };
+
+  const handleSyncMembers = async (groupId: string) => {
+    setSyncingGroupId(groupId);
+    try {
+      await syncMembersMutation.mutateAsync({
+        groupId,
+        campaignId,
+      });
+    } finally {
+      setSyncingGroupId(null);
     }
   };
 
@@ -139,6 +154,16 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                           Copiar Link de Convite
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleSyncMembers(group.id)}
+                        disabled={syncingGroupId === group.id}
+                      >
+                        <RefreshCw className={`mr-2 h-3 w-3 ${syncingGroupId === group.id ? 'animate-spin' : ''}`} />
+                        {syncingGroupId === group.id ? 'Sincronizando...' : 'Sincronizar Contatos'}
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"

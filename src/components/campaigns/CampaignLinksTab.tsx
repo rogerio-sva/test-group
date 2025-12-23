@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SmartLinkCard } from '@/components/smart-links/SmartLinkCard';
 import { useSmartLinkAnalytics } from '@/hooks/use-smart-link-analytics';
-import { Link2, Plus, Copy, ExternalLink, TrendingUp } from 'lucide-react';
+import { useSmartLinkDomain, getSmartLinkUrl } from '@/hooks/use-smart-link-domain';
+import { Link2, Plus, Copy, ExternalLink, TrendingUp, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CampaignLinksTabProps {
@@ -14,17 +15,27 @@ interface CampaignLinksTabProps {
 
 export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabProps) {
   const { data: links, isLoading } = useSmartLinkAnalytics();
+  const { data: domainSettings } = useSmartLinkDomain();
 
   const campaignLinks = links?.filter((link) => link.campaign_id === campaignId);
 
   const handleCopyLink = (slug: string) => {
-    const url = `${window.location.origin}/link/${slug}`;
+    const url = getSmartLinkUrl(
+      slug,
+      domainSettings?.custom_domain,
+      domainSettings?.domain_verified
+    );
     navigator.clipboard.writeText(url);
     toast.success('Link copiado para a área de transferência');
   };
 
   const handleOpenLink = (slug: string) => {
-    window.open(`/link/${slug}`, '_blank');
+    const url = getSmartLinkUrl(
+      slug,
+      domainSettings?.custom_domain,
+      domainSettings?.domain_verified
+    );
+    window.open(url, '_blank');
   };
 
   if (isLoading) {
@@ -92,7 +103,11 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Link2 className="h-3 w-3" />
-                      <code className="flex-1 truncate">/link/{link.slug}</code>
+                      <code className="flex-1 truncate">
+                        {domainSettings?.custom_domain && domainSettings?.domain_verified
+                          ? `${domainSettings.custom_domain}/link/${link.slug}`
+                          : `/link/${link.slug}`}
+                      </code>
                     </div>
 
                     <div className="flex gap-2">
