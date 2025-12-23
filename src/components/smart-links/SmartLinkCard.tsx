@@ -267,10 +267,10 @@ export function SmartLinkCard({
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-6">
-            <Card className="border-2">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4 space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-name" className="text-base font-semibold">Nome do Link</Label>
+                  <Label htmlFor="edit-name" className="text-base font-semibold text-foreground">Nome do Link</Label>
                   <Input
                     id="edit-name"
                     value={editData.name}
@@ -280,9 +280,9 @@ export function SmartLinkCard({
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="edit-slug" className="text-base font-semibold">URL Personalizada</Label>
+                  <Label htmlFor="edit-slug" className="text-base font-semibold text-foreground">URL Personalizada</Label>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-foreground/80 whitespace-nowrap">zap.link/</span>
+                    <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">zap.link/</span>
                     <Input
                       id="edit-slug"
                       value={editData.slug}
@@ -294,12 +294,12 @@ export function SmartLinkCard({
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-muted/30">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label className="font-semibold">Detectar Dispositivo</Label>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
+                    <Label className="font-semibold text-foreground">Detectar Dispositivo</Label>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       📱 Redireciona com base no sistema (iOS/Android)
                     </p>
                   </div>
@@ -311,12 +311,12 @@ export function SmartLinkCard({
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-muted/30">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label className="font-semibold">Rastrear Cliques</Label>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
+                    <Label className="font-semibold text-foreground">Rastrear Cliques</Label>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       📊 Registra estatísticas de acesso
                     </p>
                   </div>
@@ -328,12 +328,12 @@ export function SmartLinkCard({
               </CardContent>
             </Card>
 
-            <Card className="border-2 bg-muted/30">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <Label className="font-semibold">Link Ativo</Label>
-                    <p className="text-xs text-foreground/80 leading-relaxed">
+                    <Label className="font-semibold text-foreground">Link Ativo</Label>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       ⚡ Links inativos não redirecionam
                     </p>
                   </div>
