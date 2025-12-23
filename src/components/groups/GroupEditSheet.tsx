@@ -109,7 +109,7 @@ export function GroupEditSheet({ open, onOpenChange, group }: GroupEditSheetProp
 
         <div className="mt-6 space-y-4">
           {/* Preview do grupo */}
-          <Card className="border-2 bg-accent/30">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-primary/20 overflow-hidden border-2">
@@ -121,16 +121,16 @@ export function GroupEditSheet({ open, onOpenChange, group }: GroupEditSheetProp
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-lg text-foreground truncate">{name || "Sem nome"}</p>
-                  <p className="text-xs text-foreground/70 truncate font-medium">ID: {group.id}</p>
+                  <p className="text-xs text-muted-foreground truncate font-medium">ID: {group.id}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Nome do grupo */}
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-3">
-              <Label htmlFor="edit-name" className="text-base font-semibold flex items-center gap-2">
+              <Label htmlFor="edit-name" className="text-base font-semibold text-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Nome do Grupo
               </Label>
@@ -160,9 +160,9 @@ export function GroupEditSheet({ open, onOpenChange, group }: GroupEditSheetProp
           </Card>
 
           {/* Foto do grupo */}
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-3">
-              <Label className="text-base font-semibold flex items-center gap-2">
+              <Label className="text-base font-semibold text-foreground flex items-center gap-2">
                 <Image className="h-4 w-4" />
                 Foto do Grupo
               </Label>
@@ -209,7 +209,7 @@ export function GroupEditSheet({ open, onOpenChange, group }: GroupEditSheetProp
 
               <div className="flex items-center gap-2">
                 <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-foreground/70 font-medium">ou informe a URL</span>
+                <span className="text-xs text-muted-foreground font-medium">ou informe a URL</span>
                 <div className="flex-1 h-px bg-border" />
               </div>
 
@@ -239,10 +239,10 @@ export function GroupEditSheet({ open, onOpenChange, group }: GroupEditSheetProp
           </Card>
 
           {/* Descrição do grupo */}
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-3">
               <div className="flex items-center justify-between">
-                <Label htmlFor="edit-description" className="text-base font-semibold flex items-center gap-2">
+                <Label htmlFor="edit-description" className="text-base font-semibold text-foreground flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Descrição
                 </Label>

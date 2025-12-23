@@ -305,7 +305,7 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
             <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
             <div>
               <p className="text-sm font-medium text-destructive">Atenção</p>
-              <p className="text-xs text-destructive/80">
+              <p className="text-xs text-destructive">
                 {groups.length - configuredCount} grupo(s) sem link de convite. Clique em "Buscar Links" para tentar buscar automaticamente ou configure manualmente clicando em "Configurar" em cada grupo.
               </p>
             </div>

@@ -196,7 +196,7 @@ export function ExportContactsDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-2">
@@ -205,7 +205,7 @@ export function ExportContactsDialog({
                     checked={selectAll}
                     onCheckedChange={handleSelectAll}
                   />
-                  <Label htmlFor="selectAll" className="cursor-pointer font-semibold flex items-center gap-2">
+                  <Label htmlFor="selectAll" className="cursor-pointer font-semibold text-foreground flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     Selecionar todos os grupos
                   </Label>
@@ -218,7 +218,7 @@ export function ExportContactsDialog({
               <ScrollArea className="h-[300px] rounded-lg border-2 p-4">
                 <div className="space-y-2">
                   {groups.length === 0 ? (
-                    <p className="text-sm text-foreground/70 text-center py-8 font-medium">
+                    <p className="text-sm text-muted-foreground text-center py-8 font-medium">
                       Nenhum grupo disponível
                     </p>
                   ) : (
@@ -236,7 +236,7 @@ export function ExportContactsDialog({
                         />
                         <Label
                           htmlFor={group.phone}
-                          className="cursor-pointer flex-1 text-sm font-medium"
+                          className="cursor-pointer flex-1 text-sm font-medium text-foreground"
                         >
                           {group.name || "Grupo sem nome"}
                         </Label>
@@ -248,9 +248,9 @@ export function ExportContactsDialog({
             </CardContent>
           </Card>
 
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-3">
-              <Label className="text-base font-semibold">Formato de Exportação</Label>
+              <Label className="text-base font-semibold text-foreground">Formato de Exportação</Label>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant={exportFormat === "csv" ? "default" : "outline"}

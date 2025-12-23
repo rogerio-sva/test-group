@@ -150,10 +150,10 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
               className="font-medium"
             />
           </div>
-          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border-2">
+          <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2">
             <div className="space-y-1">
-              <Label htmlFor="is-active" className="font-semibold">Campaign Status</Label>
-              <p className="text-sm text-foreground/80 leading-relaxed">
+              <Label htmlFor="is-active" className="font-semibold text-foreground">Campaign Status</Label>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Deactivate to pause all campaign activities
               </p>
             </div>
@@ -264,10 +264,10 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border-2">
+          <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2">
             <div className="space-y-1">
-              <Label htmlFor="mention-all" className="font-semibold">Auto Mention All</Label>
-              <p className="text-sm text-foreground/80 leading-relaxed">
+              <Label htmlFor="mention-all" className="font-semibold text-foreground">Auto Mention All</Label>
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Automatically mention @everyone in group messages
               </p>
             </div>

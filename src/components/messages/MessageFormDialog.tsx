@@ -295,10 +295,10 @@ export function MessageFormDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-4">
               <div className="grid gap-2">
-                <Label className="text-base font-semibold flex items-center gap-2">
+                <Label className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Type className="h-4 w-4" />
                   Tipo de Mensagem
                 </Label>
@@ -320,7 +320,7 @@ export function MessageFormDialog({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="title" className="text-base font-semibold">Título da Mensagem</Label>
+                <Label htmlFor="title" className="text-base font-semibold text-foreground">Título da Mensagem</Label>
                 <Input
                   id="title"
                   placeholder="Ex: Promoção Especial"
@@ -334,10 +334,10 @@ export function MessageFormDialog({
           </Card>
 
           {messageType === "text" ? (
-            <Card className="border-2">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="message" className="text-base font-semibold">Mensagem</Label>
+                  <Label htmlFor="message" className="text-base font-semibold text-foreground">Mensagem</Label>
                   <Textarea
                     id="message"
                     placeholder="Digite sua mensagem aqui..."
@@ -347,14 +347,14 @@ export function MessageFormDialog({
                       setNewMessage({ ...newMessage, message: e.target.value })
                     }
                   />
-                  <p className="text-xs text-foreground/80 leading-relaxed">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     💡 Você pode usar emojis e formatação do WhatsApp (*negrito*, _itálico_)
                   </p>
                 </div>
               </CardContent>
             </Card>
           ) : messageType === "poll" ? (
-            <Card className="border-2">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <PollBuilder
                   onPollChange={(poll) => setPollData(poll)}
@@ -362,9 +362,9 @@ export function MessageFormDialog({
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-2">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4 space-y-4">
-                <Label className="text-base font-semibold flex items-center gap-2">
+                <Label className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Upload className="h-4 w-4" />
                   Upload de {messageTypeConfig[messageType].label}
                 </Label>
@@ -432,7 +432,7 @@ export function MessageFormDialog({
 
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-foreground/70 font-medium">ou informe a URL</span>
+                    <span className="text-xs text-muted-foreground font-medium">ou informe a URL</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
 
@@ -445,7 +445,7 @@ export function MessageFormDialog({
 
                 {(messageType === "image" || messageType === "video") && (
                   <div className="grid gap-2">
-                    <Label htmlFor="caption" className="font-semibold">Legenda (opcional)</Label>
+                    <Label htmlFor="caption" className="font-semibold text-foreground">Legenda (opcional)</Label>
                     <Textarea
                       id="caption"
                       placeholder="Adicione uma legenda..."
@@ -460,7 +460,7 @@ export function MessageFormDialog({
 
                 {messageType === "document" && (
                   <div className="grid gap-2">
-                    <Label htmlFor="fileName" className="font-semibold">Nome do Arquivo</Label>
+                    <Label htmlFor="fileName" className="font-semibold text-foreground">Nome do Arquivo</Label>
                     <Input
                       id="fileName"
                       placeholder="documento.pdf"
@@ -476,7 +476,7 @@ export function MessageFormDialog({
           )}
 
           {messageType !== "poll" && (
-            <Card className="border-2 bg-muted/30">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -486,7 +486,7 @@ export function MessageFormDialog({
                   />
                   <Label
                     htmlFor="mentionsEveryOne"
-                    className="text-sm cursor-pointer flex-1 font-medium"
+                    className="text-sm cursor-pointer flex-1 font-medium text-foreground"
                   >
                     Mencionar todos (@all) no grupo
                   </Label>
@@ -495,12 +495,12 @@ export function MessageFormDialog({
             </Card>
           )}
 
-          <Card className="border-2 bg-accent/20">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5" />
-                  <Label htmlFor="schedule" className="cursor-pointer font-semibold text-base">
+                  <CalendarIcon className="h-5 w-5 text-foreground" />
+                  <Label htmlFor="schedule" className="cursor-pointer font-semibold text-base text-foreground">
                     Agendar para depois
                   </Label>
                 </div>
@@ -514,9 +514,9 @@ export function MessageFormDialog({
           </Card>
 
           {isScheduled && (
-            <Card className="border-2 bg-secondary/30">
+            <Card className="border-2 bg-card">
               <CardContent className="pt-4 space-y-3">
-                <Label className="text-base font-semibold flex items-center gap-2">
+                <Label className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   Data e Hora
                 </Label>
@@ -527,7 +527,7 @@ export function MessageFormDialog({
                         variant="secondary"
                         className={cn(
                           "flex-1 justify-start text-left font-medium",
-                          !selectedDate && "text-foreground/60"
+                          !selectedDate && "text-muted-foreground"
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
@@ -564,9 +564,9 @@ export function MessageFormDialog({
             </Card>
           )}
 
-          <Card className="border-2">
+          <Card className="border-2 bg-card">
             <CardContent className="pt-4 space-y-3">
-              <Label className="text-base font-semibold">Grupos de Destino</Label>
+              <Label className="text-base font-semibold text-foreground">Grupos de Destino</Label>
               <GroupSelector
                 groups={availableGroups}
                 selectedGroups={newMessage.selectedGroups}
