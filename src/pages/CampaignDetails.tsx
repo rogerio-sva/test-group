@@ -91,7 +91,7 @@ export default function CampaignDetails() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/campaigns">Campaigns</BreadcrumbLink>
+                <BreadcrumbLink href="/campaigns">Campanhas</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -110,7 +110,7 @@ export default function CampaignDetails() {
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold">{campaign.name}</h1>
                 <Badge variant={campaign.is_active ? 'default' : 'secondary'}>
-                  {campaign.is_active ? 'Active' : 'Inactive'}
+                  {campaign.is_active ? 'Ativa' : 'Inativa'}
                 </Badge>
               </div>
             </div>
@@ -121,19 +121,19 @@ export default function CampaignDetails() {
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
+              <span className="hidden sm:inline">Visão Geral</span>
             </TabsTrigger>
             <TabsTrigger value="groups" className="gap-2">
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">Groups</span>
+              <span className="hidden sm:inline">Grupos</span>
             </TabsTrigger>
             <TabsTrigger value="contacts" className="gap-2">
               <UserCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Contacts</span>
+              <span className="hidden sm:inline">Contatos</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="gap-2">
               <MessageSquare className="h-4 w-4" />
-              <span className="hidden sm:inline">Messages</span>
+              <span className="hidden sm:inline">Mensagens</span>
             </TabsTrigger>
             <TabsTrigger value="links" className="gap-2">
               <Link2 className="h-4 w-4" />
@@ -141,7 +141,7 @@ export default function CampaignDetails() {
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden sm:inline">Configurações</span>
             </TabsTrigger>
           </TabsList>
 

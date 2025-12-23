@@ -20,7 +20,7 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
   const handleCopyLink = (slug: string) => {
     const url = `${window.location.origin}/link/${slug}`;
     navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard');
+    toast.success('Link copiado para a área de transferência');
   };
 
   const handleOpenLink = (slug: string) => {
@@ -41,14 +41,14 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium">Smart Links</h3>
+          <h3 className="text-lg font-medium text-foreground">Links Inteligentes</h3>
           <p className="text-sm text-muted-foreground">
-            Track and analyze smart links for this campaign
+            Rastreie e analise links inteligentes para esta campanha
           </p>
         </div>
         <Button onClick={onCreateLink}>
           <Plus className="mr-2 h-4 w-4" />
-          Create Link
+          Criar Link
         </Button>
       </div>
 
@@ -63,11 +63,11 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                 <CardContent className="p-4 space-y-3">
                   <div className="space-y-1">
                     <div className="flex items-start justify-between">
-                      <h4 className="font-medium">{link.name}</h4>
+                      <h4 className="font-medium text-foreground">{link.name}</h4>
                       {link.is_active ? (
-                        <Badge variant="default">Active</Badge>
+                        <Badge variant="default">Ativo</Badge>
                       ) : (
-                        <Badge variant="secondary">Inactive</Badge>
+                        <Badge variant="secondary">Inativo</Badge>
                       )}
                     </div>
                     {link.description && (
@@ -78,14 +78,14 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Clicks</span>
-                    <span className="font-bold text-lg">{totalClicks}</span>
+                    <span className="text-muted-foreground">Total de Cliques</span>
+                    <span className="font-bold text-lg text-foreground">{totalClicks}</span>
                   </div>
 
                   {clicksToday > 0 && (
                     <div className="flex items-center gap-2 text-sm text-green-600">
                       <TrendingUp className="h-3 w-3" />
-                      {clicksToday} clicks today
+                      {clicksToday} cliques hoje
                     </div>
                   )}
 
@@ -103,7 +103,7 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                         onClick={() => handleCopyLink(link.slug)}
                       >
                         <Copy className="mr-1 h-3 w-3" />
-                        Copy
+                        Copiar
                       </Button>
                       <Button
                         variant="outline"
@@ -112,14 +112,14 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                         onClick={() => handleOpenLink(link.slug)}
                       >
                         <ExternalLink className="mr-1 h-3 w-3" />
-                        Open
+                        Abrir
                       </Button>
                     </div>
                   </div>
 
                   {link.device_stats && (
                     <div className="pt-2 border-t space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Devices</p>
+                      <p className="text-xs font-medium text-muted-foreground">Dispositivos</p>
                       <div className="flex gap-2 text-xs">
                         {link.device_stats.ios > 0 && (
                           <Badge variant="outline">iOS: {link.device_stats.ios}</Badge>
@@ -142,13 +142,13 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Link2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Smart Links Yet</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">Nenhum Link Inteligente Ainda</h3>
             <p className="text-sm text-muted-foreground text-center mb-4">
-              Create smart links to track clicks and automatically rotate group invitations.
+              Crie links inteligentes para rastrear cliques e rotacionar automaticamente convites de grupos.
             </p>
             <Button onClick={onCreateLink}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Your First Link
+              Criar Seu Primeiro Link
             </Button>
           </CardContent>
         </Card>

@@ -33,7 +33,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
 
   const handleCopyLink = (link: string) => {
     navigator.clipboard.writeText(link);
-    toast.success('Invite link copied to clipboard');
+    toast.success('Link de convite copiado para a área de transferência');
   };
 
   const handleToggleActive = (groupId: string, currentStatus: boolean) => {
@@ -72,14 +72,14 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium">Campaign Groups</h3>
+            <h3 className="text-lg font-medium text-foreground">Grupos da Campanha</h3>
             <p className="text-sm text-muted-foreground">
-              Manage WhatsApp groups linked to this campaign
+              Gerencie os grupos do WhatsApp vinculados a esta campanha
             </p>
           </div>
           <Button onClick={onAddGroup}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Group
+            Adicionar Grupo
           </Button>
         </div>
 
@@ -94,17 +94,17 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <CardTitle className="text-base">{group.group_name}</CardTitle>
-                        <CardDescription className="text-xs">
-                          Priority: {group.priority}
+                        <CardTitle className="text-base text-foreground">{group.group_name}</CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground">
+                          Prioridade: {group.priority}
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">
                         {!group.is_active && (
-                          <Badge variant="secondary">Inactive</Badge>
+                          <Badge variant="secondary">Inativo</Badge>
                         )}
                         {isFull && (
-                          <Badge variant="destructive">Full</Badge>
+                          <Badge variant="destructive">Cheio</Badge>
                         )}
                       </div>
                     </div>
@@ -112,8 +112,8 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                   <CardContent className="space-y-3">
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Members</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">Membros</span>
+                        <span className="font-medium text-foreground">
                           {group.current_members} / {group.member_limit}
                         </span>
                       </div>
@@ -136,7 +136,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                           onClick={() => handleCopyLink(group.invite_link!)}
                         >
                           <Copy className="mr-2 h-3 w-3" />
-                          Copy Invite Link
+                          Copiar Link de Convite
                         </Button>
                       )}
                       <Button
@@ -146,7 +146,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                         onClick={() => onSendToGroup(group.group_phone)}
                       >
                         <Send className="mr-2 h-3 w-3" />
-                        Send Message
+                        Enviar Mensagem
                       </Button>
                       <div className="flex gap-2">
                         <Button
@@ -155,7 +155,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                           className="flex-1"
                           onClick={() => handleToggleActive(group.id, group.is_active)}
                         >
-                          {group.is_active ? 'Deactivate' : 'Activate'}
+                          {group.is_active ? 'Desativar' : 'Ativar'}
                         </Button>
                         <Button
                           variant="destructive"
@@ -163,7 +163,7 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
                           className="flex-1"
                           onClick={() => handleRemoveGroup(group.id)}
                         >
-                          Remove
+                          Remover
                         </Button>
                       </div>
                     </div>
@@ -176,13 +176,13 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Groups Yet</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">Nenhum Grupo Ainda</h3>
               <p className="text-sm text-muted-foreground text-center mb-4">
-                Add WhatsApp groups to this campaign to start sending messages and tracking engagement.
+                Adicione grupos do WhatsApp a esta campanha para começar a enviar mensagens e rastrear o engajamento.
               </p>
               <Button onClick={onAddGroup}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Your First Group
+                Adicionar Seu Primeiro Grupo
               </Button>
             </CardContent>
           </Card>
@@ -192,15 +192,15 @@ export function CampaignGroupsTab({ campaignId, onAddGroup, onSendToGroup }: Cam
       <AlertDialog open={!!groupToRemove} onOpenChange={() => setGroupToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Group from Campaign?</AlertDialogTitle>
+            <AlertDialogTitle>Remover Grupo da Campanha?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the group from this campaign. The group itself will not be deleted
-              from WhatsApp. This action cannot be undone.
+              Isso removerá o grupo desta campanha. O grupo em si não será excluído
+              do WhatsApp. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemoveGroup}>Remove</AlertDialogAction>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveGroup}>Remover</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

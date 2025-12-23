@@ -34,49 +34,49 @@ export function CampaignOverview({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Contacts"
+          title="Total de Contatos"
           value={stats.total_contacts}
           icon={Users}
-          description="Active contacts in campaign"
+          description="Contatos ativos na campanha"
         />
         <StatCard
-          title="Groups"
+          title="Grupos"
           value={stats.total_groups}
           icon={MessageSquare}
-          description="WhatsApp groups linked"
+          description="Grupos do WhatsApp vinculados"
         />
         <StatCard
-          title="Smart Links"
+          title="Links Inteligentes"
           value={stats.total_smart_links}
           icon={Link2}
-          description="Tracking links created"
+          description="Links de rastreamento criados"
         />
         <StatCard
-          title="Messages This Week"
+          title="Mensagens Esta Semana"
           value={stats.messages_sent_week}
           icon={Send}
-          description={`${stats.total_messages_sent} total sent`}
+          description={`${stats.total_messages_sent} enviadas no total`}
         />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Perform common tasks for this campaign</CardDescription>
+          <CardTitle>Ações Rápidas</CardTitle>
+          <CardDescription>Execute tarefas comuns para esta campanha</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-3">
             <Button onClick={onSendMessage} size="lg" className="w-full">
               <Send className="mr-2 h-4 w-4" />
-              Send Message
+              Enviar Mensagem
             </Button>
             <Button onClick={onAddContacts} variant="outline" size="lg" className="w-full">
               <Users className="mr-2 h-4 w-4" />
-              Add Contacts
+              Adicionar Contatos
             </Button>
             <Button onClick={onCreateLink} variant="outline" size="lg" className="w-full">
               <Link2 className="mr-2 h-4 w-4" />
-              Create Link
+              Criar Link
             </Button>
           </div>
         </CardContent>
@@ -86,9 +86,9 @@ export function CampaignOverview({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            Recent Activity
+            Atividade Recente
           </CardTitle>
-          <CardDescription>Latest actions performed on this campaign</CardDescription>
+          <CardDescription>Últimas ações realizadas nesta campanha</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoadingActivities ? (

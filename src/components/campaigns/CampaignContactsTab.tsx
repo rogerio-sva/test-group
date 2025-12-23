@@ -85,14 +85,14 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-medium">Campaign Contacts</h3>
+            <h3 className="text-lg font-medium text-foreground">Contatos da Campanha</h3>
             <p className="text-sm text-muted-foreground">
-              Manage contacts assigned to this campaign
+              Gerencie contatos atribuídos a esta campanha
             </p>
           </div>
           <Button onClick={onAddContacts}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Contacts
+            Adicionar Contatos
           </Button>
         </div>
 
@@ -100,7 +100,7 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search contacts by name, phone, or tags..."
+              placeholder="Buscar contatos por nome, telefone ou tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -112,12 +112,12 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
           >
             <SelectTrigger className="w-[180px]">
               <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-              <SelectItem value="removed">Removed</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="paused">Pausado</SelectItem>
+              <SelectItem value="removed">Removido</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -136,10 +136,10 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
                       <div className="flex items-center gap-4 flex-1">
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{contact.name}</h4>
+                            <h4 className="font-medium text-foreground">{contact.name}</h4>
                             {contact.is_business && (
                               <Badge variant="outline" className="text-xs">
-                                Business
+                                Negócio
                               </Badge>
                             )}
                             <Badge
@@ -183,9 +183,9 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="paused">Paused</SelectItem>
-                            <SelectItem value="removed">Removed</SelectItem>
+                            <SelectItem value="active">Ativo</SelectItem>
+                            <SelectItem value="paused">Pausado</SelectItem>
+                            <SelectItem value="removed">Removido</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -206,16 +206,16 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Contacts Yet</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">Nenhum Contato Ainda</h3>
               <p className="text-sm text-muted-foreground text-center mb-4">
                 {searchQuery
-                  ? 'No contacts match your search criteria.'
-                  : 'Add contacts to this campaign to start sending targeted messages.'}
+                  ? 'Nenhum contato corresponde aos seus critérios de busca.'
+                  : 'Adicione contatos a esta campanha para começar a enviar mensagens direcionadas.'}
               </p>
               {!searchQuery && (
                 <Button onClick={onAddContacts}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Your First Contact
+                  Adicionar Seu Primeiro Contato
                 </Button>
               )}
             </CardContent>
@@ -226,7 +226,7 @@ export function CampaignContactsTab({ campaignId, onAddContacts }: CampaignConta
       <AlertDialog open={!!contactToRemove} onOpenChange={() => setContactToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Contact from Campaign?</AlertDialogTitle>
+            <AlertDialogTitle>Remover Contato da Campanha?</AlertDialogTitle>
             <AlertDialogDescription>
               This will remove the contact from this campaign. The contact will still exist in your
               contacts list. This action cannot be undone.
