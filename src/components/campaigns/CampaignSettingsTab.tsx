@@ -125,61 +125,61 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
-          <CardDescription>Update campaign name and description</CardDescription>
+          <CardTitle>Informações Básicas</CardTitle>
+          <CardDescription>Atualize o nome e descrição da campanha</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-base font-semibold">Campaign Name</Label>
+            <Label htmlFor="name" className="text-base font-semibold text-foreground">Nome da Campanha</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter campaign name"
+              placeholder="Digite o nome da campanha"
               className="font-medium"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-base font-semibold">Description</Label>
+            <Label htmlFor="description" className="text-base font-semibold text-foreground">Descrição</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter campaign description"
+              placeholder="Digite a descrição da campanha"
               rows={3}
               className="font-medium"
             />
           </div>
           <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2">
             <div className="space-y-1">
-              <Label htmlFor="is-active" className="font-semibold text-foreground">Campaign Status</Label>
+              <Label htmlFor="is-active" className="font-semibold text-foreground">Status da Campanha</Label>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Deactivate to pause all campaign activities
+                Desative para pausar todas as atividades da campanha
               </p>
             </div>
             <Switch id="is-active" checked={isActive} onCheckedChange={setIsActive} />
           </div>
           <Button onClick={handleSaveBasicInfo} disabled={updateCampaignMutation.isPending} size="lg" className="w-full">
             <Save className="mr-2 h-4 w-4" />
-            Save Basic Info
+            Salvar Informações Básicas
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Sending Configuration</CardTitle>
-          <CardDescription>Configure message sending behavior for this campaign</CardDescription>
+          <CardTitle>Configuração de Envio</CardTitle>
+          <CardDescription>Configure o comportamento de envio de mensagens para esta campanha</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="provider" className="text-base font-semibold">Preferred Provider</Label>
+            <Label htmlFor="provider" className="text-base font-semibold text-foreground">Provedor Preferido</Label>
             <Select value={preferredProvider} onValueChange={(v: any) => setPreferredProvider(v)}>
               <SelectTrigger id="provider" className="font-medium">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="global">Use Global Default</SelectItem>
+                <SelectItem value="global">Usar Padrão Global</SelectItem>
                 <SelectItem value="zapi">Z-API</SelectItem>
                 <SelectItem value="evolution">Evolution API</SelectItem>
               </SelectContent>
@@ -188,7 +188,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="interval-min" className="text-base font-semibold">Min Interval (seconds)</Label>
+              <Label htmlFor="interval-min" className="text-base font-semibold text-foreground">Intervalo Mínimo (segundos)</Label>
               <Input
                 id="interval-min"
                 type="number"
@@ -199,7 +199,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="interval-max" className="text-base font-semibold">Max Interval (seconds)</Label>
+              <Label htmlFor="interval-max" className="text-base font-semibold text-foreground">Intervalo Máximo (segundos)</Label>
               <Input
                 id="interval-max"
                 type="number"
@@ -213,7 +213,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="retry-attempts" className="text-base font-semibold">Retry Attempts</Label>
+              <Label htmlFor="retry-attempts" className="text-base font-semibold text-foreground">Tentativas de Reenvio</Label>
               <Input
                 id="retry-attempts"
                 type="number"
@@ -225,7 +225,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="retry-delay" className="text-base font-semibold">Retry Delay (seconds)</Label>
+              <Label htmlFor="retry-delay" className="text-base font-semibold text-foreground">Atraso entre Tentativas (segundos)</Label>
               <Input
                 id="retry-delay"
                 type="number"
@@ -239,7 +239,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="hours-start" className="text-base font-semibold">Allowed Hours Start</Label>
+              <Label htmlFor="hours-start" className="text-base font-semibold text-foreground">Horário Permitido Início</Label>
               <Input
                 id="hours-start"
                 type="number"
@@ -251,7 +251,7 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="hours-end" className="text-base font-semibold">Allowed Hours End</Label>
+              <Label htmlFor="hours-end" className="text-base font-semibold text-foreground">Horário Permitido Fim</Label>
               <Input
                 id="hours-end"
                 type="number"
@@ -266,9 +266,9 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
 
           <div className="flex items-center justify-between p-3 bg-card rounded-lg border-2">
             <div className="space-y-1">
-              <Label htmlFor="mention-all" className="font-semibold text-foreground">Auto Mention All</Label>
+              <Label htmlFor="mention-all" className="font-semibold text-foreground">Mencionar Todos Automaticamente</Label>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Automatically mention @everyone in group messages
+                Menciona automaticamente @everyone nas mensagens de grupo
               </p>
             </div>
             <Switch
@@ -280,36 +280,36 @@ export function CampaignSettingsTab({ campaignId }: CampaignSettingsTabProps) {
 
           <Button onClick={handleSaveSettings} disabled={upsertSettingsMutation.isPending} size="lg" className="w-full">
             <Save className="mr-2 h-4 w-4" />
-            Save Settings
+            Salvar Configurações
           </Button>
         </CardContent>
       </Card>
 
       <Card className="border-destructive">
         <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Irreversible actions for this campaign</CardDescription>
+          <CardTitle className="text-destructive">Zona de Perigo</CardTitle>
+          <CardDescription>Ações irreversíveis para esta campanha</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Campaign
+                Excluir Campanha
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Campaign?</AlertDialogTitle>
+                <AlertDialogTitle>Excluir Campanha?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete the campaign, all associated groups, contacts, links,
-                  and message history. This action cannot be undone.
+                  Isso excluirá permanentemente a campanha, todos os grupos associados, contatos, links
+                  e histórico de mensagens. Esta ação não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDeleteCampaign} className="bg-destructive">
-                  Delete Permanently
+                  Excluir Permanentemente
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
