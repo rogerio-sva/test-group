@@ -256,7 +256,7 @@ export default function Users() {
                     {user.id !== currentUser?.id && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="outline" size="icon" className="border-border hover:bg-accent">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>

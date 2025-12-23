@@ -73,7 +73,7 @@ export function GroupCard({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="outline" size="icon" className="h-8 w-8 border-border hover:bg-accent">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -110,7 +110,7 @@ export function GroupCard({
       </div>
 
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={copyLink}
         className="w-full mt-3 h-8 text-xs"

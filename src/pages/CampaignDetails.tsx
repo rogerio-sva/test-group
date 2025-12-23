@@ -103,7 +103,7 @@ export default function CampaignDetails() {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/campaigns')}>
+            <Button variant="outline" size="icon" onClick={() => navigate('/campaigns')} className="border-border hover:bg-accent">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>

@@ -83,12 +83,12 @@ export function GroupListItem({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={copyLink}>
+          <Button variant="outline" size="sm" onClick={copyLink} className="border-border hover:bg-accent">
             <Copy className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="outline" size="sm" className="border-border hover:bg-accent">
                 <ExternalLink className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
