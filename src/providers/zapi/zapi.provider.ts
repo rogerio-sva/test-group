@@ -103,9 +103,9 @@ class ZAPIGroupsProvider implements IGroupsProvider {
 
     console.log(`[ZAPIGroupsProvider.getInviteLink] Response data:`, data);
 
-    if (data?.error) {
+    if (data?.success === false) {
       console.error(`[ZAPIGroupsProvider.getInviteLink] Z-API error in response:`, data.error);
-      throw new Error(`Z-API error: ${data.error}`);
+      throw new Error(data.error || 'Erro ao buscar link de convite da Z-API');
     }
 
     const inviteLink = data?.invitationLink || data?.link;

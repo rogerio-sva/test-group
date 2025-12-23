@@ -68,12 +68,17 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
         return { link: null, error: error.message || 'Erro ao buscar link' };
       }
 
-      if (!data?.invitationLink) {
+      if (data?.success === false) {
+        console.error('Z-API error:', data.error);
+        return { link: null, error: data.error || 'Erro ao buscar link da Z-API' };
+      }
+
+      if (!data?.invitationLink && !data?.link) {
         console.warn(`No invitation link returned for ${groupPhone}`);
         return { link: null, error: 'Link de convite não disponível' };
       }
 
-      const inviteLink = data.invitationLink;
+      const inviteLink = data.invitationLink || data.link;
       if (!inviteLink.includes('chat.whatsapp.com/')) {
         console.warn(`Invalid invite link format for ${groupPhone}: ${inviteLink}`);
         return { link: null, error: 'Formato de link inválido' };
@@ -135,10 +140,10 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
         duration: 8000,
       });
     } else {
-      const errorDetails = failedGroups.map(g => `${g.name}: ${g.error}`).join('; ');
+      const errorSummary = failedGroups.map(g => `• ${g.name}`).join('\n');
       toast({
-        title: "Falha ao buscar links",
-        description: `Não foi possível obter os links automaticamente. Detalhes: ${errorDetails}. Configure manualmente.`,
+        title: "Falha ao buscar links automaticamente",
+        description: `Não foi possível obter os links dos seguintes grupos:\n${errorSummary}\n\nConfigure manualmente clicando em "Configurar" em cada grupo.`,
         variant: "destructive",
         duration: 10000,
       });

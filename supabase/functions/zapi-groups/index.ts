@@ -248,9 +248,14 @@ Deno.serve(async (req: Request) => {
       const errorData = await response.text();
       console.error(`Z-API error response: ${errorData}`);
       return new Response(
-        JSON.stringify({ error: `Z-API error: ${response.status} ${response.statusText}` }),
+        JSON.stringify({
+          success: false,
+          error: `Z-API error: ${response.status} ${response.statusText}`,
+          statusCode: response.status,
+          details: errorData
+        }),
         {
-          status: response.status,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
@@ -263,9 +268,12 @@ Deno.serve(async (req: Request) => {
       if (!data || typeof data !== "object") {
         console.error("[getInviteLink] Invalid response format:", data);
         return new Response(
-          JSON.stringify({ error: "Invalid response format from Z-API" }),
+          JSON.stringify({
+            success: false,
+            error: "Invalid response format from Z-API"
+          }),
           {
-            status: 500,
+            status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
@@ -274,9 +282,13 @@ Deno.serve(async (req: Request) => {
       if (!data.invitationLink && !data.link) {
         console.error("[getInviteLink] No invitation link in response:", data);
         return new Response(
-          JSON.stringify({ error: "No invitation link returned by Z-API", details: data }),
+          JSON.stringify({
+            success: false,
+            error: "No invitation link returned by Z-API",
+            details: data
+          }),
           {
-            status: 500,
+            status: 200,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           }
         );
@@ -285,14 +297,17 @@ Deno.serve(async (req: Request) => {
       console.log(`[getInviteLink] Successfully retrieved invite link: ${data.invitationLink || data.link}`);
     }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ success: true, ...data }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
     console.error("Error in zapi-groups function:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
+    return new Response(JSON.stringify({
+      success: false,
+      error: errorMessage
+    }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
