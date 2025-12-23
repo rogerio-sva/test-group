@@ -195,8 +195,9 @@ Deno.serve(async (req: Request) => {
         }
 
         console.log(`[getInviteLink] Using groupId as-is: ${params.groupId}`);
-        endpoint = `/group-invitation-link/${params.groupId}`;
-        method = "POST";
+        // Use group-metadata endpoint which returns invitationLink via GET
+        endpoint = `/group-metadata/${params.groupId}`;
+        method = "GET";
         console.log(`[getInviteLink] Calling Z-API endpoint: ${endpoint}`);
         break;
 
@@ -238,6 +239,9 @@ Deno.serve(async (req: Request) => {
 
     if (body) {
       fetchOptions.body = JSON.stringify(body);
+    } else if (method === "POST") {
+      // Some APIs require empty body for POST requests
+      fetchOptions.body = JSON.stringify({});
     }
 
     console.log(`Calling Z-API: ${maskUrl(ZAPI_BASE_URL + endpoint)}`);
