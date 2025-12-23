@@ -151,7 +151,7 @@ export function SmartLinkCard({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="outline" size="icon" className="border-border hover:bg-accent">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

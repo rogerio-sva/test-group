@@ -103,20 +103,27 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
     let successCount = 0;
     const failedGroups: Array<{ name: string; error: string }> = [];
 
+    console.log(`[CampaignGroupsManager] Buscando links para ${pendingGroups.length} grupos pendentes`);
+
     for (const group of pendingGroups) {
+      console.log(`[CampaignGroupsManager] Processando grupo: ${group.group_name} (${group.group_phone})`);
       const { link: inviteLink, error: fetchError } = await fetchInviteLinkFromZAPI(group.group_phone);
 
       if (inviteLink) {
         try {
+          console.log(`[CampaignGroupsManager] Link obtido para ${group.group_name}, salvando...`);
           await updateGroup.mutateAsync({ id: group.id, invite_link: inviteLink });
           successCount++;
+          console.log(`[CampaignGroupsManager] Link salvo com sucesso para ${group.group_name}`);
         } catch (updateError) {
+          console.error(`[CampaignGroupsManager] Erro ao salvar link para ${group.group_name}:`, updateError);
           failedGroups.push({
             name: group.group_name,
             error: 'Erro ao salvar no banco de dados'
           });
         }
       } else {
+        console.error(`[CampaignGroupsManager] Falha ao obter link para ${group.group_name}:`, fetchError);
         failedGroups.push({
           name: group.group_name,
           error: fetchError || 'Link não disponível'
@@ -124,6 +131,7 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
       }
     }
 
+    console.log(`[CampaignGroupsManager] Resultado: ${successCount} sucesso, ${failedGroups.length} falhas`);
     setIsFetchingLinks(false);
     refetch();
 
@@ -261,7 +269,7 @@ export function CampaignGroupsManager({ campaignId, campaignName }: CampaignGrou
                     </Button>
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="outline"
                       onClick={() => setEditingId(null)}
                     >
                       Cancelar
