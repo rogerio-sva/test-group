@@ -1,20 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-export interface CampaignGroup {
-  id: string;
-  campaign_id: string;
-  group_phone: string;
-  group_name: string;
-  member_limit: number;
-  current_members: number;
-  invite_link: string | null;
-  priority: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import type { CampaignGroup } from '@/core/types';
 
 export function useCampaignGroups(campaignId: string | undefined, activeOnly: boolean = false) {
   return useQuery({

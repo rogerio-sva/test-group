@@ -1,15 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface CampaignActivity {
-  id: string;
-  campaign_id: string;
-  action_type: string;
-  action_data: Record<string, any>;
-  performed_at: string;
-  metadata: Record<string, any>;
-  created_at: string;
-}
+import type { CampaignActivity } from '@/core/types';
 
 export function useCampaignActivity(campaignId: string | undefined, limit: number = 50) {
   return useQuery({

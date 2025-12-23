@@ -1,56 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-
-export interface Campaign {
-  id: string;
-  name: string;
-  description: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CampaignGroup {
-  id: string;
-  campaign_id: string;
-  group_phone: string;
-  group_name: string;
-  member_limit: number;
-  current_members: number;
-  invite_link: string | null;
-  priority: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface SmartLink {
-  id: string;
-  campaign_id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  redirect_delay: number;
-  track_clicks: boolean;
-  detect_device: boolean;
-  is_active: boolean;
-  total_clicks: number;
-  created_at: string;
-  updated_at: string;
-  campaign?: Campaign;
-}
-
-export interface SmartLinkClick {
-  id: string;
-  smart_link_id: string;
-  redirected_to_group: string | null;
-  device_type: string | null;
-  user_agent: string | null;
-  ip_address: string | null;
-  referrer: string | null;
-  created_at: string;
-}
+import { toast } from "sonner";
+import type { Campaign, CampaignGroup, SmartLink, SmartLinkClick } from "@/core/types";
 
 // Campanhas
 export function useCampaigns() {
@@ -69,7 +20,6 @@ export function useCampaigns() {
 
 export function useCreateCampaign() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (campaign: { name: string; description?: string }) => {
@@ -83,17 +33,16 @@ export function useCreateCampaign() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast({ title: "Campanha criada", description: "A campanha foi criada com sucesso!" });
+      toast.success("Campanha criada com sucesso!");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao criar campanha: " + error.message);
     },
   });
 }
 
 export function useDeleteCampaign() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -102,10 +51,10 @@ export function useDeleteCampaign() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-      toast({ title: "Campanha excluída" });
+      toast.success("Campanha excluída");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao excluir campanha: " + error.message);
     },
   });
 }
@@ -144,7 +93,6 @@ export function useAllCampaignGroups() {
 
 export function useAddCampaignGroup() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (group: Omit<CampaignGroup, 'id' | 'created_at' | 'updated_at'>) => {
@@ -158,10 +106,10 @@ export function useAddCampaignGroup() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['campaign-groups', data.campaign_id] });
-      toast({ title: "Grupo adicionado", description: "O grupo foi adicionado à campanha!" });
+      toast.success("Grupo adicionado à campanha!");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao adicionar grupo: " + error.message);
     },
   });
 }
@@ -203,7 +151,6 @@ export function useSmartLinks() {
 
 export function useCreateSmartLink() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (link: {
@@ -225,17 +172,16 @@ export function useCreateSmartLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smart-links'] });
-      toast({ title: "Smart Link criado", description: "O link foi criado com sucesso!" });
+      toast.success("Smart Link criado com sucesso!");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao criar Smart Link: " + error.message);
     },
   });
 }
 
 export function useUpdateSmartLink() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<SmartLink> & { id: string }) => {
@@ -250,17 +196,16 @@ export function useUpdateSmartLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smart-links'] });
-      toast({ title: "Smart Link atualizado", description: "As alterações foram salvas!" });
+      toast.success("Smart Link atualizado com sucesso!");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao atualizar Smart Link: " + error.message);
     },
   });
 }
 
 export function useDeleteSmartLink() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (id: string) => {
@@ -269,10 +214,10 @@ export function useDeleteSmartLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['smart-links'] });
-      toast({ title: "Smart Link excluído" });
+      toast.success("Smart Link excluído");
     },
     onError: (error: Error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
+      toast.error("Erro ao excluir Smart Link: " + error.message);
     },
   });
 }

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ interface CampaignCardProps {
   variant?: 'default' | 'compact' | 'detailed';
 }
 
-export function CampaignCard({
+export const CampaignCard = memo(function CampaignCard({
   campaign,
   onManage,
   onEdit,
@@ -145,4 +146,4 @@ export function CampaignCard({
       </CardContent>
     </Card>
   );
-}
+});

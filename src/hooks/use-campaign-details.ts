@@ -1,25 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-export interface Campaign {
-  id: string;
-  name: string;
-  description: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CampaignWithStats extends Campaign {
-  stats?: {
-    total_contacts: number;
-    total_groups: number;
-    total_smart_links: number;
-    messages_sent_week: number;
-    total_messages_sent: number;
-  };
-}
+import type { Campaign, CampaignWithStats } from '@/core/types';
 
 export function useCampaignDetails(campaignId: string | undefined) {
   return useQuery({

@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { Users, Link2, MoreVertical, Copy, ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface GroupCardProps {
   id: string;
@@ -22,7 +23,7 @@ interface GroupCardProps {
   onEdit?: () => void;
 }
 
-export function GroupCard({
+export const GroupCard = memo(function GroupCard({
   id,
   name,
   members,
@@ -32,16 +33,12 @@ export function GroupCard({
   photoUrl,
   onEdit,
 }: GroupCardProps) {
-  const { toast } = useToast();
   const percentage = (members / maxMembers) * 100;
 
-  const copyLink = () => {
+  const copyLink = useCallback(() => {
     navigator.clipboard.writeText(inviteLink);
-    toast({
-      title: "Link copiado!",
-      description: "O link foi copiado para a área de transferência.",
-    });
-  };
+    toast.success("Link copiado para a área de transferência!");
+  }, [inviteLink]);
 
   return (
     <div className="rounded-lg bg-card p-4 shadow-card transition-all duration-200 hover:shadow-elevated border">
@@ -120,4 +117,4 @@ export function GroupCard({
       </Button>
     </div>
   );
-}
+});

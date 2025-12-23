@@ -127,6 +127,52 @@ export interface CampaignGroup {
   updated_at: string;
 }
 
+export interface CampaignWithStats extends Campaign {
+  stats?: {
+    total_contacts: number;
+    total_groups: number;
+    total_smart_links: number;
+    messages_sent_week: number;
+    total_messages_sent: number;
+  };
+}
+
+export interface CampaignActivity {
+  id: string;
+  campaign_id: string;
+  action_type: string;
+  action_data: Record<string, any>;
+  performed_at: string;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface CampaignContact {
+  id: string;
+  campaign_id: string;
+  phone: string;
+  name: string | null;
+  status: 'active' | 'inactive';
+  tags: string[];
+  metadata: Record<string, any>;
+  added_at: string;
+  last_message_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CampaignSettings {
+  id: string;
+  campaign_id: string;
+  auto_rotation: boolean;
+  max_members_per_group: number;
+  send_delay_seconds: number;
+  welcome_message: string | null;
+  metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
 // ===========================================
 // Smart Link Types
 // ===========================================
