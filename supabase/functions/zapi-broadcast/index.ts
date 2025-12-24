@@ -51,8 +51,8 @@ function maskUrl(url: string): string {
   return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***/");
 }
 
-const BATCH_SIZE = 10;
-const MAX_EXECUTION_TIME = 50000;
+const BATCH_SIZE = 8;
+const MAX_EXECUTION_TIME = 45000;
 
 interface BroadcastRequest {
   messageHistoryId: string;
@@ -297,9 +297,23 @@ async function processBroadcast(messageHistoryId: string, delayBetween: number, 
     .eq("message_history_id", messageHistoryId)
     .eq("status", "pending");
 
+  console.log(`Remaining pending: ${remainingCount}`);
+
   if (remainingCount && remainingCount > 0) {
-    console.log(`${remainingCount} messages remaining, invoking continuation...`);
-    await invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+    console.log(`${remainingCount} messages remaining, invoking continuation NOW...`);
+
+    const continuationPromise = invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+
+    try {
+      await Promise.race([
+        continuationPromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Continuation timeout")), 5000))
+      ]);
+      console.log("Continuation invoked successfully");
+    } catch (error) {
+      console.error("Continuation invocation error:", error);
+      await invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+    }
   } else {
     const finalStatus = failCount === totalCount ? "failed" : "sent";
     await supabase
