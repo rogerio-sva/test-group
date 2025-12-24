@@ -48,10 +48,11 @@ async function getZAPICredentials(supabase: any): Promise<ZAPICredentials> {
 }
 
 function maskUrl(url: string): string {
-  return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***");
+  return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***/");
 }
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 10;
+const MAX_EXECUTION_TIME = 50000;
 
 interface BroadcastRequest {
   messageHistoryId: string;
@@ -156,6 +157,7 @@ async function invokeContinuation(messageHistoryId: string, delayBetween: number
 
 async function processBroadcast(messageHistoryId: string, delayBetween: number, mentionsEveryOne: boolean) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const startTime = Date.now();
 
   console.log(`Processing broadcast for message: ${messageHistoryId}`);
 
@@ -231,6 +233,13 @@ async function processBroadcast(messageHistoryId: string, delayBetween: number, 
   console.log(`Processing batch of ${sendDetails.length} messages (${successCount + failCount}/${totalCount} already processed)`);
 
   for (let i = 0; i < sendDetails.length; i++) {
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime > MAX_EXECUTION_TIME) {
+      console.log(`Approaching timeout (${elapsedTime}ms), invoking continuation early...`);
+      await invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+      return;
+    }
+
     const detail = sendDetails[i];
 
     console.log(`Sending to ${detail.group_phone} (${successCount + failCount + 1}/${totalCount})`);
