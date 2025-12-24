@@ -44,68 +44,65 @@ async function getZAPICredentials(supabase: any): Promise<ZAPICredentials> {
     };
   }
 
-  throw new Error("Z-API credentials not configured. Please configure them in Settings.");
+  throw new Error("Z-API credentials not configured");
 }
 
 function maskUrl(url: string): string {
   return url.replace(/\/instances\/[^\/]+\/token\/[^\/]+/, "/instances/***MASKED***/token/***MASKED***/");
 }
 
-const BATCH_SIZE = 8;
-const MAX_EXECUTION_TIME = 45000;
+const BATCH_SIZE = 10;
+const MAX_EXECUTION_TIME = 50000;
+const DEFAULT_DELAY = 5000;
 
 interface BroadcastRequest {
-  messageHistoryId: string;
+  messageHistoryId?: string;
+  batchId?: string;
   delayBetween?: number;
   mentionsEveryOne?: boolean;
 }
 
 async function sendMessage(
   credentials: ZAPICredentials,
-  messageType: string,
-  phone: string,
-  content: string,
-  mediaUrl?: string,
-  caption?: string,
-  mentionsEveryOne?: boolean
+  messageContent: any
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
     const ZAPI_BASE_URL = `https://api.z-api.io/instances/${credentials.instanceId}/token/${credentials.token}`;
     let endpoint = "";
-    let body: Record<string, unknown> = { phone };
+    let body: Record<string, unknown> = { phone: messageContent.phone };
 
-    switch (messageType) {
+    switch (messageContent.messageType) {
       case "text":
         endpoint = "/send-text";
-        body.message = content;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.message = messageContent.content;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
         break;
       case "image":
         endpoint = "/send-image";
-        body.image = mediaUrl;
-        if (caption) body.caption = caption;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.image = messageContent.mediaUrl;
+        if (messageContent.caption) body.caption = messageContent.caption;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
         break;
       case "video":
         endpoint = "/send-video";
-        body.video = mediaUrl;
-        if (caption) body.caption = caption;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.video = messageContent.mediaUrl;
+        if (messageContent.caption) body.caption = messageContent.caption;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
         break;
       case "audio":
         endpoint = "/send-audio";
-        body.audio = mediaUrl;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.audio = messageContent.mediaUrl;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
         break;
       case "document":
         endpoint = "/send-document";
-        body.document = mediaUrl;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.document = messageContent.mediaUrl;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
         break;
       default:
         endpoint = "/send-text";
-        body.message = content;
-        if (mentionsEveryOne) body.mentionsEveryOne = true;
+        body.message = messageContent.content;
+        if (messageContent.mentionsEveryOne) body.mentionsEveryOne = true;
     }
 
     console.log(`Sending message via Z-API: ${maskUrl(ZAPI_BASE_URL + endpoint)}`);
@@ -132,10 +129,10 @@ async function sendMessage(
   }
 }
 
-async function invokeContinuation(messageHistoryId: string, delayBetween: number, mentionsEveryOne: boolean) {
+async function invokeContinuation(batchId: string) {
   const functionUrl = `${SUPABASE_URL}/functions/v1/zapi-broadcast`;
 
-  console.log(`Invoking continuation for ${messageHistoryId}`);
+  console.log(`Invoking continuation for batch ${batchId}`);
 
   try {
     await fetch(functionUrl, {
@@ -144,189 +141,287 @@ async function invokeContinuation(messageHistoryId: string, delayBetween: number
         "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        messageHistoryId,
-        delayBetween,
-        mentionsEveryOne,
-      }),
+      body: JSON.stringify({ batchId }),
     });
   } catch (error) {
     console.error("Failed to invoke continuation:", error);
   }
 }
 
-async function processBroadcast(messageHistoryId: string, delayBetween: number, mentionsEveryOne: boolean) {
+async function processQueue(batchId?: string, messageHistoryId?: string) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const startTime = Date.now();
 
-  console.log(`Processing broadcast for message: ${messageHistoryId}`);
+  console.log(`Processing queue - batchId: ${batchId}, messageHistoryId: ${messageHistoryId}`);
 
   const credentials = await getZAPICredentials(supabase);
 
-  const { data: messageHistory, error: historyError } = await supabase
-    .from("message_history")
-    .select("*")
-    .eq("id", messageHistoryId)
-    .single();
-
-  if (historyError || !messageHistory) {
-    console.error("Failed to fetch message history:", historyError);
-    return;
-  }
-
-  if (messageHistory.status === "pending") {
-    await supabase
+  if (messageHistoryId) {
+    const { data: messageHistory, error: historyError } = await supabase
       .from("message_history")
-      .update({ status: "processing", sent_at: new Date().toISOString() })
-      .eq("id", messageHistoryId);
-  }
+      .select("*")
+      .eq("id", messageHistoryId)
+      .single();
 
-  const { data: sendDetails, error: detailsError } = await supabase
-    .from("message_send_details")
-    .select("*")
-    .eq("message_history_id", messageHistoryId)
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(BATCH_SIZE);
-
-  if (detailsError) {
-    console.error("Failed to fetch send details:", detailsError);
-    return;
-  }
-
-  if (!sendDetails || sendDetails.length === 0) {
-    console.log(`No more pending messages for ${messageHistoryId}, finalizing...`);
-
-    const { data: allDetails } = await supabase
-      .from("message_send_details")
-      .select("status")
-      .eq("message_history_id", messageHistoryId);
-
-    const successCount = allDetails?.filter((d) => d.status === "sent").length || 0;
-    const failCount = allDetails?.filter((d) => d.status === "failed").length || 0;
-
-    const finalStatus = failCount === allDetails?.length ? "failed" : "sent";
-
-    await supabase
-      .from("message_history")
-      .update({
-        status: finalStatus,
-        successful_sends: successCount,
-        failed_sends: failCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", messageHistoryId);
-
-    console.log(`Broadcast completed: ${successCount} sent, ${failCount} failed`);
-    return;
-  }
-
-  const { data: currentCounts } = await supabase
-    .from("message_send_details")
-    .select("status")
-    .eq("message_history_id", messageHistoryId);
-
-  let successCount = currentCounts?.filter((d) => d.status === "sent").length || 0;
-  let failCount = currentCounts?.filter((d) => d.status === "failed").length || 0;
-  const totalCount = currentCounts?.length || 0;
-
-  console.log(`Processing batch of ${sendDetails.length} messages (${successCount + failCount}/${totalCount} already processed)`);
-
-  for (let i = 0; i < sendDetails.length; i++) {
-    const elapsedTime = Date.now() - startTime;
-    if (elapsedTime > MAX_EXECUTION_TIME) {
-      console.log(`Approaching timeout (${elapsedTime}ms), invoking continuation early...`);
-      await invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+    if (historyError || !messageHistory) {
+      console.error("Failed to fetch message history:", historyError);
       return;
     }
 
-    const detail = sendDetails[i];
-
-    console.log(`Sending to ${detail.group_phone} (${successCount + failCount + 1}/${totalCount})`);
-
-    const result = await sendMessage(
-      credentials,
-      messageHistory.message_type,
-      detail.group_phone,
-      messageHistory.content,
-      messageHistory.media_url,
-      messageHistory.content,
-      mentionsEveryOne
-    );
-
-    if (result.success) {
-      successCount++;
+    if (messageHistory.status === "pending") {
       await supabase
-        .from("message_send_details")
-        .update({
-          status: "sent",
-          sent_at: new Date().toISOString(),
-          zapi_message_id: result.messageId,
-        })
-        .eq("id", detail.id);
-    } else {
-      failCount++;
-      await supabase
-        .from("message_send_details")
-        .update({
-          status: "failed",
-          error_message: result.error,
-        })
-        .eq("id", detail.id);
+        .from("message_history")
+        .update({ status: "processing", sent_at: new Date().toISOString() })
+        .eq("id", messageHistoryId);
     }
 
-    await supabase
-      .from("message_history")
-      .update({
-        successful_sends: successCount,
-        failed_sends: failCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", messageHistoryId);
+    const { data: sendDetails } = await supabase
+      .from("message_send_details")
+      .select("*")
+      .eq("message_history_id", messageHistoryId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
 
-    if (i < sendDetails.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, delayBetween));
+    if (!sendDetails || sendDetails.length === 0) {
+      console.log("No pending messages, finalizing...");
+      
+      const { data: allDetails } = await supabase
+        .from("message_send_details")
+        .select("status")
+        .eq("message_history_id", messageHistoryId);
+
+      const successCount = allDetails?.filter((d) => d.status === "sent").length || 0;
+      const failCount = allDetails?.filter((d) => d.status === "failed").length || 0;
+      const finalStatus = failCount === allDetails?.length ? "failed" : "sent";
+
+      await supabase
+        .from("message_history")
+        .update({
+          status: finalStatus,
+          successful_sends: successCount,
+          failed_sends: failCount,
+        })
+        .eq("id", messageHistoryId);
+
+      return;
+    }
+
+    const { data: batch } = await supabase
+      .from("broadcast_batch")
+      .insert({
+        user_id: messageHistory.user_id,
+        campaign_id: messageHistory.campaign_id,
+        batch_name: `Broadcast ${messageHistoryId}`,
+        total_messages: sendDetails.length,
+        status: "processing",
+        started_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (batch) {
+      for (const detail of sendDetails) {
+        await supabase.from("broadcast_queue").insert({
+          user_id: messageHistory.user_id,
+          campaign_id: messageHistory.campaign_id,
+          group_id: detail.group_phone,
+          message_content: {
+            messageType: messageHistory.message_type,
+            content: messageHistory.content,
+            mediaUrl: messageHistory.media_url,
+            phone: detail.group_phone,
+            mentionsEveryOne: false,
+            caption: messageHistory.content,
+          },
+          status: "pending",
+          scheduled_at: new Date().toISOString(),
+          metadata: {
+            messageHistoryId,
+            sendDetailId: detail.id,
+            batchId: batch.id,
+          },
+        });
+      }
+      
+      await invokeContinuation(batch.id);
+      return;
     }
   }
 
-  console.log(`Batch completed: ${successCount} sent, ${failCount} failed`);
+  if (batchId) {
+    const { data: batch } = await supabase
+      .from("broadcast_batch")
+      .select("*")
+      .eq("id", batchId)
+      .single();
 
-  const { count: remainingCount } = await supabase
-    .from("message_send_details")
-    .select("*", { count: "exact", head: true })
-    .eq("message_history_id", messageHistoryId)
-    .eq("status", "pending");
-
-  console.log(`Remaining pending: ${remainingCount}`);
-
-  if (remainingCount && remainingCount > 0) {
-    console.log(`${remainingCount} messages remaining, invoking continuation NOW...`);
-
-    const continuationPromise = invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
-
-    try {
-      await Promise.race([
-        continuationPromise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Continuation timeout")), 5000))
-      ]);
-      console.log("Continuation invoked successfully");
-    } catch (error) {
-      console.error("Continuation invocation error:", error);
-      await invokeContinuation(messageHistoryId, delayBetween, mentionsEveryOne);
+    if (!batch) {
+      console.error("Batch not found");
+      return;
     }
-  } else {
-    const finalStatus = failCount === totalCount ? "failed" : "sent";
-    await supabase
-      .from("message_history")
-      .update({
-        status: finalStatus,
-        successful_sends: successCount,
-        failed_sends: failCount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", messageHistoryId);
 
-    console.log(`Broadcast fully completed: ${successCount} sent, ${failCount} failed`);
+    const { data: queueItems } = await supabase
+      .from("broadcast_queue")
+      .select("*")
+      .eq("metadata->>batchId", batchId)
+      .in("status", ["pending", "failed"])
+      .lt("retry_count", 3)
+      .order("priority", { ascending: false })
+      .order("scheduled_at", { ascending: true })
+      .limit(BATCH_SIZE);
+
+    if (!queueItems || queueItems.length === 0) {
+      console.log("No more queue items, finalizing batch...");
+
+      const { data: allItems } = await supabase
+        .from("broadcast_queue")
+        .select("status")
+        .eq("metadata->>batchId", batchId);
+
+      const sentCount = allItems?.filter((i) => i.status === "sent").length || 0;
+      const failedCount = allItems?.filter((i) => i.status === "failed").length || 0;
+
+      await supabase
+        .from("broadcast_batch")
+        .update({
+          status: "completed",
+          sent_count: sentCount,
+          failed_count: failedCount,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", batchId);
+
+      const messageHistoryId = batch.metadata?.messageHistoryId;
+      if (messageHistoryId) {
+        const finalStatus = failedCount === allItems?.length ? "failed" : "sent";
+        await supabase
+          .from("message_history")
+          .update({
+            status: finalStatus,
+            successful_sends: sentCount,
+            failed_sends: failedCount,
+          })
+          .eq("id", messageHistoryId);
+      }
+
+      return;
+    }
+
+    console.log(`Processing ${queueItems.length} queue items...`);
+
+    let sentInBatch = 0;
+    let failedInBatch = 0;
+
+    for (let i = 0; i < queueItems.length; i++) {
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime > MAX_EXECUTION_TIME) {
+        console.log(`Timeout approaching (${elapsedTime}ms), invoking continuation...`);
+        await invokeContinuation(batchId);
+        return;
+      }
+
+      const item = queueItems[i];
+
+      await supabase
+        .from("broadcast_queue")
+        .update({ status: "processing" })
+        .eq("id", item.id);
+
+      const result = await sendMessage(credentials, item.message_content);
+
+      if (result.success) {
+        sentInBatch++;
+        await supabase
+          .from("broadcast_queue")
+          .update({
+            status: "sent",
+            sent_at: new Date().toISOString(),
+            metadata: { ...item.metadata, zapiMessageId: result.messageId },
+          })
+          .eq("id", item.id);
+
+        const sendDetailId = item.metadata?.sendDetailId;
+        if (sendDetailId) {
+          await supabase
+            .from("message_send_details")
+            .update({
+              status: "sent",
+              sent_at: new Date().toISOString(),
+              zapi_message_id: result.messageId,
+            })
+            .eq("id", sendDetailId);
+        }
+      } else {
+        failedInBatch++;
+        const newRetryCount = item.retry_count + 1;
+        const newStatus = newRetryCount >= item.max_retries ? "failed" : "pending";
+
+        await supabase
+          .from("broadcast_queue")
+          .update({
+            status: newStatus,
+            retry_count: newRetryCount,
+            error_message: result.error,
+            failed_at: newStatus === "failed" ? new Date().toISOString() : null,
+          })
+          .eq("id", item.id);
+
+        const sendDetailId = item.metadata?.sendDetailId;
+        if (sendDetailId && newStatus === "failed") {
+          await supabase
+            .from("message_send_details")
+            .update({
+              status: "failed",
+              error_message: result.error,
+            })
+            .eq("id", sendDetailId);
+        }
+      }
+
+      await supabase
+        .from("broadcast_batch")
+        .update({
+          sent_count: batch.sent_count + sentInBatch,
+          failed_count: batch.failed_count + failedInBatch,
+        })
+        .eq("id", batchId);
+
+      if (i < queueItems.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, DEFAULT_DELAY));
+      }
+    }
+
+    const { count: remainingCount } = await supabase
+      .from("broadcast_queue")
+      .select("*", { count: "exact", head: true })
+      .eq("metadata->>batchId", batchId)
+      .in("status", ["pending", "failed"])
+      .lt("retry_count", 3);
+
+    if (remainingCount && remainingCount > 0) {
+      console.log(`${remainingCount} items remaining, continuing...`);
+      await invokeContinuation(batchId);
+    } else {
+      const { data: allItems } = await supabase
+        .from("broadcast_queue")
+        .select("status")
+        .eq("metadata->>batchId", batchId);
+
+      const sentCount = allItems?.filter((i) => i.status === "sent").length || 0;
+      const failedCount = allItems?.filter((i) => i.status === "failed").length || 0;
+
+      await supabase
+        .from("broadcast_batch")
+        .update({
+          status: "completed",
+          sent_count: sentCount,
+          failed_count: failedCount,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", batchId);
+
+      console.log(`Batch completed: ${sentCount} sent, ${failedCount} failed`);
+    }
   }
 }
 
@@ -339,15 +434,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messageHistoryId, delayBetween = 5000, mentionsEveryOne = false }: BroadcastRequest = await req.json();
+    const { messageHistoryId, batchId, delayBetween = DEFAULT_DELAY, mentionsEveryOne = false }: BroadcastRequest = await req.json();
 
-    if (!messageHistoryId) {
-      throw new Error("messageHistoryId is required");
+    if (!messageHistoryId && !batchId) {
+      throw new Error("Either messageHistoryId or batchId is required");
     }
 
-    console.log(`Received broadcast request for: ${messageHistoryId}, mentionsEveryOne: ${mentionsEveryOne}`);
+    console.log(`Received broadcast request - messageHistoryId: ${messageHistoryId}, batchId: ${batchId}`);
 
-    processBroadcast(messageHistoryId, delayBetween, mentionsEveryOne).catch((err) =>
+    processQueue(batchId, messageHistoryId).catch((err) =>
       console.error("Background task error:", err)
     );
 
@@ -356,6 +451,7 @@ Deno.serve(async (req) => {
         success: true,
         message: "Broadcast started in background",
         messageHistoryId,
+        batchId,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

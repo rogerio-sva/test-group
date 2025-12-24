@@ -3,6 +3,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { GroupCard } from "@/components/groups/GroupCard";
 import { MessageCard } from "@/components/messages/MessageCard";
 import { SendingRateMonitor } from "@/components/dashboard/SendingRateMonitor";
+import { BroadcastMonitorPanel } from "@/components/broadcast/BroadcastMonitorPanel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Link2, Send, Calendar, Plus, ArrowRight } from "lucide-react";
@@ -125,6 +126,11 @@ export default function Dashboard() {
       {/* Sending Rate Monitor */}
       <section className="mt-8">
         <SendingRateMonitor />
+      </section>
+
+      {/* Broadcast Monitor */}
+      <section className="mt-8">
+        <BroadcastMonitorPanel />
       </section>
 
       {/* Recent Groups */}

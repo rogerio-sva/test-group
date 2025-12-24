@@ -4,12 +4,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Search, RefreshCw, Users, Shield } from "lucide-react";
 
 interface Group {
   id: string;
   name: string;
   phone: string;
+  participant_count?: number;
+  is_admin?: boolean;
 }
 
 interface GroupSelectorProps {
@@ -32,14 +35,26 @@ export function GroupSelector({
   showPriority = false,
 }: GroupSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterAdmin, setFilterAdmin] = useState<"all" | "admin" | "member">("all");
 
   const filteredGroups = useMemo(() => {
-    if (!searchQuery.trim()) return groups;
-    const query = searchQuery.toLowerCase();
-    return groups.filter((group) =>
-      group.name.toLowerCase().includes(query)
-    );
-  }, [groups, searchQuery]);
+    let filtered = groups;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((group) =>
+        group.name.toLowerCase().includes(query)
+      );
+    }
+
+    if (filterAdmin === "admin") {
+      filtered = filtered.filter((group) => group.is_admin);
+    } else if (filterAdmin === "member") {
+      filtered = filtered.filter((group) => !group.is_admin);
+    }
+
+    return filtered;
+  }, [groups, searchQuery, filterAdmin]);
 
   const toggleGroup = (groupId: string) => {
     if (selectedGroups.includes(groupId)) {
@@ -90,6 +105,35 @@ export function GroupSelector({
         )}
       </div>
 
+      {/* Filtros */}
+      <div className="flex gap-2">
+        <Button
+          variant={filterAdmin === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterAdmin("all")}
+          className="flex-1"
+        >
+          Todos
+        </Button>
+        <Button
+          variant={filterAdmin === "admin" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterAdmin("admin")}
+          className="flex-1"
+        >
+          <Shield className="h-3 w-3 mr-1" />
+          Admin
+        </Button>
+        <Button
+          variant={filterAdmin === "member" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setFilterAdmin("member")}
+          className="flex-1"
+        >
+          Membro
+        </Button>
+      </div>
+
       {/* Ações de seleção */}
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
@@ -138,28 +182,44 @@ export function GroupSelector({
               <div
                 key={group.id}
                 className={`flex items-center justify-between p-3 rounded-lg transition-colors cursor-pointer ${
-                  isSelected 
-                    ? "bg-primary/10 border border-primary/20" 
+                  isSelected
+                    ? "bg-primary/10 border border-primary/20"
                     : "bg-secondary/50 hover:bg-secondary"
                 }`}
                 onClick={() => toggleGroup(group.id)}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <Checkbox
                     id={`group-${group.id}`}
                     checked={isSelected}
                     onCheckedChange={() => toggleGroup(group.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <Label
-                    htmlFor={`group-${group.id}`}
-                    className="cursor-pointer text-sm"
-                  >
-                    {group.name}
-                  </Label>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <Label
+                      htmlFor={`group-${group.id}`}
+                      className="cursor-pointer text-sm truncate"
+                    >
+                      {group.name}
+                    </Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      {group.is_admin && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Shield className="h-2.5 w-2.5 mr-1" />
+                          Admin
+                        </Badge>
+                      )}
+                      {group.participant_count !== undefined && group.participant_count > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          <Users className="h-2.5 w-2.5 mr-1" />
+                          {group.participant_count}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 {priority && (
-                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded ml-2">
                     #{priority}
                   </span>
                 )}

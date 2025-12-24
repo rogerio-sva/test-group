@@ -31,6 +31,8 @@ import { useZAPIGroups, useCreateGroup, useUpdateGroupPhoto, useUpdateGroupDescr
 import { useMediaUpload } from "@/hooks/use-media-upload";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Group } from "@/core/types";
+import { useGroupMetadata } from "@/hooks/use-group-metadata";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Groups() {
   const { toast } = useToast();
@@ -59,18 +61,33 @@ export default function Groups() {
   } | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
-  const { data: groups = [], isLoading, refetch, isRefetching } = useZAPIGroups();
+  const { data: groups = [], isLoading: isLoadingZAPI, refetch, isRefetching } = useZAPIGroups();
   const createGroup = useCreateGroup();
   const updatePhoto = useUpdateGroupPhoto();
   const updateDescription = useUpdateGroupDescription();
   const { uploadFile, isUploading } = useMediaUpload();
 
-  // Filtra apenas grupos (isGroup: true)
-  const whatsappGroups = groups.filter((g) => g.isGroup);
+  const {
+    groups: cachedGroups,
+    syncStatus,
+    isLoading: isLoadingCache,
+    isSyncing,
+    hasError,
+    needsSync,
+    syncGroups,
+  } = useGroupMetadata();
 
-  const filteredGroups = whatsappGroups.filter((group) =>
-    group.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const isLoading = isLoadingZAPI || isLoadingCache;
+  const whatsappGroups = cachedGroups.length > 0 ? cachedGroups : groups.filter((g) => g.isGroup);
+
+  const filteredGroups = whatsappGroups.filter((group) => {
+    const name = cachedGroups.length > 0 ? group.group_name : group.name;
+    const description = cachedGroups.length > 0 ? group.group_description : null;
+    return (
+      name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   const totalPages = Math.ceil(filteredGroups.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -159,22 +176,71 @@ export default function Groups() {
     }
   };
 
-  const handleEditGroup = (group: Group) => {
+  const handleEditGroup = (group: any) => {
+    const groupId = cachedGroups.length > 0 ? group.group_id : group.phone;
+    const groupName = cachedGroups.length > 0 ? group.group_name : group.name;
+
     setEditingGroup({
-      id: group.phone,
-      name: group.name || "Grupo sem nome",
+      id: groupId,
+      name: groupName || "Grupo sem nome",
     });
     setIsEditSheetOpen(true);
   };
 
-  const activeGroups = whatsappGroups.filter((g) => g.archived !== "true");
-  const archivedGroups = whatsappGroups.filter((g) => g.archived === "true");
+  const activeGroups = whatsappGroups.filter((g) => {
+    if (cachedGroups.length > 0) return true;
+    return g.archived !== "true";
+  });
+  const archivedGroups = whatsappGroups.filter((g) => {
+    if (cachedGroups.length > 0) return false;
+    return g.archived === "true";
+  });
 
   return (
     <MainLayout
       title="Gerenciamento de Grupos"
       subtitle="Gerencie todos os seus grupos do WhatsApp"
     >
+      {/* Sync Status Alert */}
+      {needsSync && !isSyncing && (
+        <Alert className="mb-6">
+          <AlertDescription>
+            Sincronize seus grupos para obter informações detalhadas como número de participantes e descrições.
+            <Button
+              variant="link"
+              className="ml-2 h-auto p-0"
+              onClick={() => syncGroups()}
+            >
+              Sincronizar agora
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {hasError && syncStatus?.error_message && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>
+            Erro na sincronização: {syncStatus.error_message}
+            <Button
+              variant="link"
+              className="ml-2 h-auto p-0 text-destructive"
+              onClick={() => syncGroups()}
+            >
+              Tentar novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isSyncing && (
+        <Alert className="mb-6">
+          <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+          <AlertDescription className="inline">
+            Sincronizando grupos... Isso pode levar alguns minutos.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -234,6 +300,18 @@ export default function Groups() {
           </Button>
 
           <Button
+            variant="outline"
+            onClick={() => syncGroups()}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            {isSyncing ? "Sincronizando..." : "Sincronizar"}
+          </Button>
+          <Button
             variant="secondary"
             onClick={() => refetch()}
             disabled={isRefetching}
@@ -243,7 +321,7 @@ export default function Groups() {
             ) : (
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Atualizar
+            Atualizar Lista
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -442,35 +520,42 @@ export default function Groups() {
       ) : (
         <>
           <div className={viewMode === "grid" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "space-y-3"}>
-            {paginatedGroups.map((group, index) => (
-              <div
-                key={group.phone}
-                style={{ animationDelay: `${index * 30}ms` }}
-                className="animate-slide-up"
-              >
-                {viewMode === "grid" ? (
-                  <GroupCard
-                    id={group.phone}
-                    name={group.name || "Grupo sem nome"}
-                    members={0}
-                    maxMembers={256}
-                    inviteLink={`https://chat.whatsapp.com/${group.phone}`}
-                    status={group.archived === "true" ? "inactive" : "active"}
-                    onEdit={() => handleEditGroup(group)}
-                  />
-                ) : (
-                  <GroupListItem
-                    id={group.phone}
-                    name={group.name || "Grupo sem nome"}
-                    members={0}
-                    maxMembers={256}
-                    inviteLink={`https://chat.whatsapp.com/${group.phone}`}
-                    status={group.archived === "true" ? "inactive" : "active"}
-                    onEdit={() => handleEditGroup(group)}
-                  />
-                )}
-              </div>
-            ))}
+            {paginatedGroups.map((group, index) => {
+              const groupId = cachedGroups.length > 0 ? group.group_id : group.phone;
+              const groupName = cachedGroups.length > 0 ? group.group_name : group.name;
+              const memberCount = cachedGroups.length > 0 ? group.participant_count : 0;
+              const isArchived = cachedGroups.length > 0 ? false : group.archived === "true";
+
+              return (
+                <div
+                  key={groupId}
+                  style={{ animationDelay: `${index * 30}ms` }}
+                  className="animate-slide-up"
+                >
+                  {viewMode === "grid" ? (
+                    <GroupCard
+                      id={groupId}
+                      name={groupName || "Grupo sem nome"}
+                      members={memberCount}
+                      maxMembers={256}
+                      inviteLink={`https://chat.whatsapp.com/${groupId}`}
+                      status={isArchived ? "inactive" : "active"}
+                      onEdit={() => handleEditGroup(group)}
+                    />
+                  ) : (
+                    <GroupListItem
+                      id={groupId}
+                      name={groupName || "Grupo sem nome"}
+                      members={memberCount}
+                      maxMembers={256}
+                      inviteLink={`https://chat.whatsapp.com/${groupId}`}
+                      status={isArchived ? "inactive" : "active"}
+                      onEdit={() => handleEditGroup(group)}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Pagination */}
