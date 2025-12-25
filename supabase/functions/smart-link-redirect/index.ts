@@ -140,22 +140,24 @@ Deno.serve(async (req) => {
     console.log(`Found smart link: ${smartLink.name} (ID: ${smartLink.id}, Campaign: ${smartLink.campaign?.name || 'N/A'})`);
 
     // Busca os grupos da campanha ordenados por prioridade
+    // Filtra apenas grupos ativos E com rotação ativada
     const { data: campaignGroups, error: groupsError } = await supabase
       .from('campaign_groups')
       .select('*')
       .eq('campaign_id', smartLink.campaign_id)
       .eq('is_active', true)
+      .eq('rotation_enabled', true)
       .order('priority', { ascending: true });
 
     if (groupsError || !campaignGroups || campaignGroups.length === 0) {
-      console.error('No groups found for campaign:', groupsError);
+      console.error('No groups found for campaign with rotation enabled:', groupsError);
       return new Response(
-        JSON.stringify({ error: 'Nenhum grupo configurado para esta campanha. Configure grupos no painel.' }),
+        JSON.stringify({ error: 'Nenhum grupo com rotação ativa encontrado. Ative a rotação nos grupos da campanha no painel.' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found ${campaignGroups.length} active groups for campaign ${smartLink.campaign_id}`);
+    console.log(`Found ${campaignGroups.length} active groups with rotation enabled for campaign ${smartLink.campaign_id}`);
 
     // Detecta o dispositivo
     const userAgent = req.headers.get('user-agent') || '';

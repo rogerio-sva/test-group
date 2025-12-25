@@ -104,9 +104,7 @@ export function CampaignLinksTab({ campaignId, onCreateLink }: CampaignLinksTabP
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Link2 className="h-3 w-3" />
                       <code className="flex-1 truncate">
-                        {domainSettings?.custom_domain && domainSettings?.domain_verified
-                          ? `${domainSettings.custom_domain}/link/${link.slug}`
-                          : `/link/${link.slug}`}
+                        {window.location.origin}/l/{link.slug}
                       </code>
                     </div>
 

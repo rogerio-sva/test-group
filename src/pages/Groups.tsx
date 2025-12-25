@@ -4,7 +4,7 @@ import { GroupCard } from "@/components/groups/GroupCard";
 import { GroupListItem } from "@/components/groups/GroupListItem";
 import { GroupEditSheet } from "@/components/groups/GroupEditSheet";
 import { ExportContactsDialog } from "@/components/groups/ExportContactsDialog";
-import { BulkGroupCreateDialog } from "@/components/groups/BulkGroupCreateDialog";
+import { NumberedGroupCreateDialog } from "@/components/groups/NumberedGroupCreateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, RefreshCw, Loader2, Upload, X, Grid3x3, List, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Search, RefreshCw, Loader2, Upload, X, Grid3x3, List, Download, Hash } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InfoTooltip, LabelWithTooltip } from "@/components/ui/info-tooltip";
 import { useZAPIGroups, useCreateGroup, useUpdateGroupPhoto, useUpdateGroupDescription } from "@/hooks/use-zapi";
@@ -329,8 +329,8 @@ export default function Groups() {
             variant="outline"
             onClick={() => setIsBulkCreateDialogOpen(true)}
           >
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Criar Múltiplos
+            <Hash className="mr-2 h-4 w-4" />
+            Criar Numerados
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -646,7 +646,7 @@ export default function Groups() {
       />
 
       {/* Dialog de criação em massa */}
-      <BulkGroupCreateDialog
+      <NumberedGroupCreateDialog
         open={isBulkCreateDialogOpen}
         onOpenChange={setIsBulkCreateDialogOpen}
         onSuccess={() => {

@@ -52,6 +52,7 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/link/:slug" element={<LinkRedirect />} />
+              <Route path="/l/:slug" element={<LinkRedirect />} />
 
               {/* Protected routes */}
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

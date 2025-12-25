@@ -118,13 +118,18 @@ export function useVerifyDomain() {
 }
 
 export function getSmartLinkUrl(slug: string, customDomain?: string | null, verified?: boolean): string {
-  if (customDomain && verified) {
-    return `https://${customDomain}/link/${slug}`;
-  }
-
   if (typeof window !== 'undefined') {
-    return `${window.location.origin}/link/${slug}`;
+    return `${window.location.origin}/l/${slug}`;
   }
 
-  return `/link/${slug}`;
+  return `/l/${slug}`;
+}
+
+export function generateShortSlug(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let slug = '';
+  for (let i = 0; i < 8; i++) {
+    slug += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return slug;
 }
