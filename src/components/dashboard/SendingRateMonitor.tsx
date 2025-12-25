@@ -1,27 +1,23 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, TrendingUp, CheckCircle2 } from "lucide-react";
 import { useSendingMetrics } from "@/hooks/use-sending-metrics";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export function SendingRateMonitor() {
   const { data: metrics, isLoading: metricsLoading } = useSendingMetrics("hour", 12);
 
   if (metricsLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Monitor de Envio de Mensagens</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-32 w-full" />
-        </CardContent>
-      </Card>
-    );
+    return null;
   }
 
   const totalSent = metrics?.reduce((sum, m) => sum + m.messages_sent, 0) || 0;
   const totalFailed = metrics?.reduce((sum, m) => sum + m.messages_failed, 0) || 0;
-  const successRate = totalSent > 0 ? ((totalSent / (totalSent + totalFailed)) * 100).toFixed(1) : 0;
+  const totalMessages = totalSent + totalFailed;
+
+  if (totalMessages === 0) {
+    return null;
+  }
+
+  const successRate = ((totalSent / totalMessages) * 100).toFixed(1);
 
   return (
     <Card>
