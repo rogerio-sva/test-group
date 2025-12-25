@@ -4,6 +4,7 @@ import { GroupCard } from "@/components/groups/GroupCard";
 import { GroupListItem } from "@/components/groups/GroupListItem";
 import { GroupEditSheet } from "@/components/groups/GroupEditSheet";
 import { ExportContactsDialog } from "@/components/groups/ExportContactsDialog";
+import { BulkGroupCreateDialog } from "@/components/groups/BulkGroupCreateDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +44,7 @@ export default function Groups() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isBulkCreateDialogOpen, setIsBulkCreateDialogOpen] = useState(false);
   const [newGroup, setNewGroup] = useState({
     name: "",
     phones: "",
@@ -322,6 +324,13 @@ export default function Groups() {
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
             Atualizar Lista
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsBulkCreateDialogOpen(true)}
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Criar Múltiplos
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -634,6 +643,16 @@ export default function Groups() {
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         groups={whatsappGroups}
+      />
+
+      {/* Dialog de criação em massa */}
+      <BulkGroupCreateDialog
+        open={isBulkCreateDialogOpen}
+        onOpenChange={setIsBulkCreateDialogOpen}
+        onSuccess={() => {
+          refetch();
+          syncGroups();
+        }}
       />
     </MainLayout>
   );
