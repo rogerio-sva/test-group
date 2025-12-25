@@ -154,6 +154,29 @@ export function useBroadcastProgress(messageHistoryId: string | null) {
 }
 
 export function useActiveBroadcasts() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('message-history-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_history',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['active-broadcasts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ['active-broadcasts'],
     queryFn: async () => {
@@ -166,7 +189,6 @@ export function useActiveBroadcasts() {
       if (error) throw error;
       return data as MessageHistory[];
     },
-    refetchInterval: 5000, // Refetch every 5 seconds
   });
 }
 

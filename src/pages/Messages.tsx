@@ -38,12 +38,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Plus, Search, Send, Loader2, Image, Video, Music, FileText, Type, Upload, X, Calendar as CalendarIcon, Clock, ListChecks } from "lucide-react";
+import { Plus, Search, Send, Loader2, Image, Video, Music, FileText, Type, Upload, X, Calendar as CalendarIcon, Clock, ListChecks, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InfoTooltip, LabelWithTooltip } from "@/components/ui/info-tooltip";
 import { useZAPIGroups } from "@/hooks/use-zapi";
 import { useStartBackgroundBroadcast, useMessageHistoryList, useActiveBroadcasts } from "@/hooks/use-background-broadcast";
 import { useMediaUpload } from "@/hooks/use-media-upload";
+import { useGroupMetadata } from "@/hooks/use-group-metadata";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -91,17 +92,27 @@ export default function Messages() {
   const { data: messageHistory = [] } = useMessageHistoryList();
   const { data: activeBroadcasts = [] } = useActiveBroadcasts();
   const { uploadFile, isUploading } = useMediaUpload();
+  const {
+    groups: metadataGroups,
+    syncGroups,
+    isSyncing,
+    syncStatus
+  } = useGroupMetadata();
 
   const isSending = startBroadcast.isPending;
 
-  // Filtra apenas grupos do WhatsApp
   const availableGroups = zapiGroups
     .filter((g) => g.isGroup)
-    .map((g) => ({
-      id: g.phone,
-      name: g.name || "Grupo sem nome",
-      phone: g.phone,
-    }));
+    .map((g) => {
+      const metadata = metadataGroups.find((m) => m.group_id === g.phone);
+      return {
+        id: g.phone,
+        name: g.name || "Grupo sem nome",
+        phone: g.phone,
+        participant_count: metadata?.participant_count,
+        is_admin: metadata?.is_admin,
+      };
+    });
 
   // Map messageHistory to display format
   const messages = messageHistory.map((msg) => ({
@@ -197,6 +208,28 @@ export default function Messages() {
         variant: "destructive",
       });
       return;
+    }
+
+    const selectedGroupsWithMetadata = availableGroups.filter(g =>
+      newMessage.selectedGroups.includes(g.phone)
+    );
+
+    const groupsWithFewMembers = selectedGroupsWithMetadata.filter(g =>
+      g.participant_count !== undefined && g.participant_count < 5
+    );
+
+    if (groupsWithFewMembers.length > 0) {
+      const confirmSend = window.confirm(
+        `Atenção: ${groupsWithFewMembers.length} grupo(s) tem menos de 5 membros. Deseja continuar mesmo assim?`
+      );
+      if (!confirmSend) return;
+    }
+
+    if (newMessage.selectedGroups.length > 10) {
+      const confirmSend = window.confirm(
+        `Você está prestes a enviar para ${newMessage.selectedGroups.length} grupos. Deseja continuar?`
+      );
+      if (!confirmSend) return;
     }
 
     // Validação específica por tipo
@@ -599,18 +632,37 @@ export default function Messages() {
 
               {/* Selecao de grupos */}
               <div className="grid gap-2">
-                <LabelWithTooltip
-                  label="Grupos de Destino"
-                  tooltip="Selecione os grupos que receberao esta mensagem. O envio e feito com intervalo de 5 segundos entre cada grupo."
-                  required
-                />
+                <div className="flex items-center justify-between">
+                  <LabelWithTooltip
+                    label="Grupos de Destino"
+                    tooltip="Selecione os grupos que receberao esta mensagem. O envio e feito com intervalo de 5 segundos entre cada grupo."
+                    required
+                  />
+                  {syncStatus && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => syncGroups()}
+                      disabled={isSyncing}
+                      className="text-xs"
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
+                      {isSyncing ? "Sincronizando..." : "Atualizar metadados"}
+                    </Button>
+                  )}
+                </div>
+                {syncStatus && syncStatus.last_sync_at && (
+                  <p className="text-xs text-muted-foreground">
+                    Última sincronização: {format(new Date(syncStatus.last_sync_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                )}
                 <GroupSelector
                   groups={availableGroups}
                   selectedGroups={newMessage.selectedGroups}
                   onSelectionChange={(selected) =>
                     setNewMessage({ ...newMessage, selectedGroups: selected })
                   }
-                  isLoading={isLoadingGroups}
+                  isLoading={isLoadingGroups || isSyncing}
                   onRefresh={() => refetch()}
                   maxHeight="200px"
                 />

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export interface GroupMetadata {
   id: string;
@@ -45,11 +46,45 @@ export const useGroupMetadata = () => {
 
       return data as GroupSyncStatus | null;
     },
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      return data?.status === "syncing" ? 2000 : false;
-    },
   });
+
+  useEffect(() => {
+    const syncChannel = supabase
+      .channel("group-sync-status-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "group_sync_status",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["group-sync-status"] });
+          queryClient.invalidateQueries({ queryKey: ["group-metadata"] });
+        }
+      )
+      .subscribe();
+
+    const metadataChannel = supabase
+      .channel("group-metadata-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "group_metadata_cache",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["group-metadata"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(syncChannel);
+      supabase.removeChannel(metadataChannel);
+    };
+  }, [queryClient]);
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
     queryKey: ["group-metadata"],

@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export interface BroadcastBatch {
   id: string;
@@ -37,6 +38,8 @@ export interface BroadcastQueueItem {
 }
 
 export const useBroadcastMonitor = () => {
+  const queryClient = useQueryClient();
+
   const { data: activeBatches, isLoading: isLoadingBatches } = useQuery({
     queryKey: ["broadcast-batches-active"],
     queryFn: async () => {
@@ -50,7 +53,6 @@ export const useBroadcastMonitor = () => {
       if (error) throw error;
       return data as BroadcastBatch[];
     },
-    refetchInterval: 3000,
   });
 
   const { data: recentBatches, isLoading: isLoadingRecent } = useQuery({
@@ -66,7 +68,6 @@ export const useBroadcastMonitor = () => {
       if (error) throw error;
       return data as BroadcastBatch[];
     },
-    refetchInterval: 10000,
   });
 
   const { data: queueStats } = useQuery({
@@ -94,8 +95,45 @@ export const useBroadcastMonitor = () => {
         retriable: failed.count || 0,
       };
     },
-    refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    const batchChannel = supabase
+      .channel("broadcast-batch-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "broadcast_batch",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["broadcast-batches-active"] });
+          queryClient.invalidateQueries({ queryKey: ["broadcast-batches-recent"] });
+        }
+      )
+      .subscribe();
+
+    const queueChannel = supabase
+      .channel("broadcast-queue-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "broadcast_queue",
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["broadcast-queue-stats"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(batchChannel);
+      supabase.removeChannel(queueChannel);
+    };
+  }, [queryClient]);
 
   const getBatchProgress = (batch: BroadcastBatch) => {
     const total = batch.total_messages;
