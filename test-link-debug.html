@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Debug Link Inteligente</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+    .test { margin: 20px 0; padding: 15px; background: #2d2d2d; border-radius: 5px; }
+    .success { color: #4ec9b0; }
+    .error { color: #f48771; }
+    .info { color: #569cd6; }
+    pre { background: #1e1e1e; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    button { background: #0e639c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+    button:hover { background: #1177bb; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Debug Link Inteligente</h1>
+  <div id="results"></div>
+
+  <button onclick="testEdgeFunction()">1. Testar Edge Function</button>
+  <button onclick="testFrontendFlow()">2. Testar Fluxo Frontend</button>
+  <button onclick="testRedirect()">3. Fazer Redirecionamento Real</button>
+  <button onclick="window.location.href='http://localhost:8080/link/aiai'">4. Ir para /link/aiai</button>
+
+  <script>
+    const supabaseUrl = 'https://ezsvnjmixsgrpjdmyqyj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6c3Zuam1peHNncnBqZG15cXlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1OTAwNjAsImV4cCI6MjA4MTE2NjA2MH0.QqTIe_7EqPdnp_WjaB3gQh8oiXyBadkOyjPLgYw4hkY';
+    const slug = 'aiai';
+
+    function log(html) {
+      const div = document.createElement('div');
+      div.className = 'test';
+      div.innerHTML = html;
+      document.getElementById('results').appendChild(div);
+    }
+
+    async function testEdgeFunction() {
+      log('<div class="info">📡 Testando Edge Function...</div>');
+
+      try {
+        const url = `${supabaseUrl}/functions/v1/smart-link-redirect?slug=${slug}`;
+        log(`<div>URL: ${url}</div>`);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+          },
+        });
+
+        log(`<div>Status: ${response.status} ${response.statusText}</div>`);
+        log(`<div>Content-Type: ${response.headers.get('content-type')}</div>`);
+
+        const data = await response.json();
+        log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+
+        if (data.success) {
+          log(`<div class="success">✅ Edge Function funcionando!</div>`);
+          log(`<div>Grupo selecionado: ${data.groupName}</div>`);
+          log(`<div>Link: ${data.inviteLink}</div>`);
+        } else {
+          log(`<div class="error">❌ Resposta sem success</div>`);
+        }
+      } catch (err) {
+        log(`<div class="error">❌ Erro: ${err.message}</div>`);
+        console.error(err);
+      }
+    }
+
+    async function testFrontendFlow() {
+      log('<div class="info">🎨 Testando Fluxo Frontend...</div>');
+
+      try {
+        // Simula o que o React faz
+        log('<div>1. Verificando variáveis de ambiente...</div>');
+        log(`<div>VITE_SUPABASE_URL: ${supabaseUrl ? '✅' : '❌'}</div>`);
+        log(`<div>VITE_SUPABASE_ANON_KEY: ${supabaseKey ? '✅' : '❌'}</div>`);
+
+        log('<div>2. Fazendo requisição...</div>');
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/smart-link-redirect?slug=${encodeURIComponent(slug)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Link não encontrado');
+        }
+
+        if (!data.success) {
+          throw new Error('Erro ao processar o link');
+        }
+
+        log('<div class="success">✅ Dados recebidos com sucesso!</div>');
+        log(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+
+        log('<div>3. Preparando redirecionamento...</div>');
+        log(`<div>Device Type: ${data.deviceType}</div>`);
+        log(`<div>Delay: ${data.delay}ms</div>`);
+        log(`<div>Redirect URL: ${data.redirectUrl}</div>`);
+        log(`<div>Invite Link: ${data.inviteLink}</div>`);
+
+      } catch (err) {
+        log(`<div class="error">❌ Erro no fluxo: ${err.message}</div>`);
+        console.error(err);
+      }
+    }
+
+    async function testRedirect() {
+      log('<div class="info">🚀 Iniciando redirecionamento real...</div>');
+
+      try {
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/smart-link-redirect?slug=${slug}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Erro ao buscar link');
+        }
+
+        log(`<div class="success">✅ Redirecionando para: ${data.groupName}</div>`);
+        log(`<div>Link: ${data.inviteLink}</div>`);
+        log('<div class="info">Aguarde 3 segundos...</div>');
+
+        setTimeout(() => {
+          window.location.href = data.inviteLink;
+        }, 3000);
+
+      } catch (err) {
+        log(`<div class="error">❌ Erro: ${err.message}</div>`);
+      }
+    }
+
+    // Executa teste automático ao carregar
+    window.addEventListener('load', () => {
+      setTimeout(testEdgeFunction, 500);
+    });
+  </script>
+</body>
+</html>

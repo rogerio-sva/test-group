@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Link Inteligente</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: #25D366;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo svg { width: 48px; height: 48px; fill: white; }
+    h1 { color: #333; font-size: 24px; margin-bottom: 12px; }
+    p { color: #666; font-size: 16px; margin-bottom: 24px; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #25D366;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn {
+      display: inline-block;
+      background: #25D366;
+      color: white;
+      padding: 14px 32px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37,211,102,0.4);
+    }
+    .error {
+      background: #ffebee;
+      color: #c62828;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .info { color: #999; font-size: 14px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+    </div>
+    <div class="spinner"></div>
+    <h1>Entrando no grupo...</h1>
+    <p id="status">Carregando...</p>
+    <div id="error" class="error" style="display:none;"></div>
+    <a href="#" id="fallback-btn" class="btn" style="display:none;">Abrir WhatsApp</a>
+    <p class="info" id="info"></p>
+  </div>
+  <script>
+    const slug = 'aiai';
+    const supabaseUrl = 'https://ezsvnjmixsgrpjdmyqyj.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6c3Zuam1peHNncnBqZG15cXlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1OTAwNjAsImV4cCI6MjA4MTE2NjA2MH0.QqTIe_7EqPdnp_WjaB3gQh8oiXyBadkOyjPLgYw4hkY';
+
+    async function redirect() {
+      try {
+        document.getElementById('status').textContent = 'Buscando grupo...';
+
+        const response = await fetch(
+          `${supabaseUrl}/functions/v1/smart-link-redirect?slug=${encodeURIComponent(slug)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log('Response:', data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Link não encontrado');
+        }
+
+        if (!data.success) {
+          throw new Error('Erro ao processar o link');
+        }
+
+        document.getElementById('status').textContent = `Redirecionando para: ${data.groupName}`;
+        document.getElementById('info').textContent = `Device: ${data.deviceType} | Delay: ${data.delay}ms`;
+
+        const fallbackBtn = document.getElementById('fallback-btn');
+        fallbackBtn.href = data.inviteLink;
+        fallbackBtn.style.display = 'inline-block';
+
+        // Redireciona após delay
+        setTimeout(() => {
+          if (data.deviceType === 'ios' || data.deviceType === 'android') {
+            window.location.href = data.redirectUrl;
+            setTimeout(() => {
+              window.location.href = data.inviteLink;
+            }, 2000);
+          } else {
+            window.location.href = data.inviteLink;
+          }
+        }, data.delay);
+
+      } catch (err) {
+        console.error('Error:', err);
+        document.getElementById('error').textContent = err.message;
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('status').textContent = 'Erro ao carregar';
+      }
+    }
+
+    redirect();
+  </script>
+</body>
+</html>
